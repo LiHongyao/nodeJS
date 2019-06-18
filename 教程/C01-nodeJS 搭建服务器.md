@@ -386,6 +386,126 @@ $.post({
 
 ![](../资源/url-post.png)
 
+## 4. 路由处理
+
+所谓路由处理，就是根据不同的请求方式、路径、参数作出响应。
+
+定义路由模块，当用户请求到了后端就会进入到路由模块。我们以两个实例来讲解：
+
+- 当用户是POST请求，且路径为 /login 时，返回字符串：您想要登陆
+- 当用户是GET请求，路径为 / ，参数为status=completed时，返回字符串：您想要获取已完成订单信息
+
+\ 定义路由模块：
+
+\ *index.js*
+
+```js
+const http = require("http");
+const querystring = require("querystring");
+const url = require("url");
+const router = require("./router.js");
+
+http.createServer((req, res) => {
+    // 处理跨域
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    // 响应header
+    res.writeHead(200, {"Content-Type":"text/plain;charset=utf-8"});
+    // 过滤空请求
+    if(req.url === "/favicon.ico") return;
+    // 定义三个变量记录方法类型、路径名、参数
+    let method   = req.method, // 类型
+        pathname = url.parse(req.url).pathname, // 路径名
+        query    = ""; // 参数
+    if(method === "GET") {
+        // 解析参数
+        query = url.parse(req.url, true).query;
+        // 传入路由模块
+        router({req, res}, {method, pathname, query});
+    }else if(method == "POST") {
+        req.on("data", (data) => {
+            query += data;
+        });
+        req.on("end", () => {
+            // 将key=value的形式字符串转换为对象字符串{key:value}形式
+            query = querystring.parse(query);
+            router({req, res}, {method, pathname, query});
+        });
+    }else {
+        res.end("ERROR: Can't identify your request type.");
+    }
+}).listen(8081, "127.0.0.1");
+
+// 提示用户服务器相关信息
+console.log("server running at http://127.0.0.1:8081.");
+
+```
+
+\ *router.js*
+
+```js
+/**
+ * 
+ * @param {Object} httpObj  含有请求对象与响应对象
+ * @param {Object} urlObj   方法类型、路径、参数
+ */
+const router = (httpObj, urlObj)  => {
+    // 解构属性
+    let {res, req} = httpObj;
+    let {method, pathname, query} = urlObj;
+    console.info(urlObj);
+    // 路由处理
+    // - 当用户是POST请求，且路径为 /login 时，返回字符串：您想要登陆
+    if(method === "POST" && pathname == "/login") {
+        res.end("您想要登陆");
+    }
+    // - 当用户是GET请求，路径为 / ，参数为status=completed时，返回字符串：您想要获取已完成订单信息
+    else if(method == "GET" && query.status === "completed") {
+        res.end("您想要获取已完成订单信息");
+    }
+}
+
+module.exports = router;
+```
+
+## 5. 返回 JSON 对象
+
+返回JSON对象比较简单，直接返回一个字符串对象就可以啦。
+
+\ *router.js*
+
+```js
+if(method === "POST" && pathname == "/login") {
+    let obj = {
+        nikename: "木子李",
+        gender: "男",
+        address: "四川省成都市高新区雅和南四路216号"
+    }
+    res.end(JSON.stringify(obj));
+}
+```
+
+\ 客户端代码
+
+```js
+$.post({
+    url: "http://127.0.0.1:8081/login",
+    data: {
+        username: "admin",
+        passworld: "123"
+    }
+})
+```
+
+\ 调试界面
+
+![](../资源/res-json.png)
+
+# 六、链接数据库
+
+
+
+
+
 
 
 
