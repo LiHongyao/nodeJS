@@ -502,6 +502,104 @@ $.post({
 
 # 六、链接数据库
 
+Mysql 数据库教程：<https://github.com/lihongyao/mysql>
+
+数据库安装之后，我们可以在数据库中创建一个数据库”db_test“，然后创建一个学生信息表”stus“，代码如下所示：
+
+```mysql
+mysql> CREATE DATABASE db_test;
+Query OK, 1 row affected (0.03 sec)
+
+mysql> USE db_test;
+Database changed
+mysql> CREATE TABLE stus(
+    -> id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    -> name VARCHAR(65) NOT NULL,
+    -> age INT NOT NULL,
+    -> origin VARCHAR(65) NOT NULL,
+    -> major VARCHAR(65) NOT NULL);
+Query OK, 0 rows affected (0.08 sec)
+
+mysql> DESC stus;
++--------+-------------+------+-----+---------+----------------+
+| Field  | Type        | Null | Key | Default | Extra          |
++--------+-------------+------+-----+---------+----------------+
+| id     | int(11)     | NO   | PRI | NULL    | auto_increment |
+| name   | varchar(65) | NO   |     | NULL    |                |
+| age    | int(11)     | NO   |     | NULL    |                |
+| origin | varchar(65) | NO   |     | NULL    |                |
+| major  | varchar(65) | NO   |     | NULL    |                |
++--------+-------------+------+-----+---------+----------------+
+5 rows in set (0.01 sec)
+```
+
+## 1. 流程
+
+stips 1：安装mysql模块
+
+```shell
+$ npm install mysql
+```
+
+stips 2：在文件中导入mysql模块
+
+```
+const mysql = require("mysql");
+```
+
+stips 3：使用mysql对象的createConnection方法连接数据库
+
+```js
+var mysql = require('mysql');
+var connection = mysql.createConnection({
+    // 主机名
+    host: '127.0.0.1',
+    // 端口
+    port: '3306',
+    // 用户名
+    user: 'root',
+    // 密码
+    password: 'lihy_930716',
+    // 数据库名
+    database: 'test_db'
+});
+
+// 链接数据库
+connection.connect();
+...
+// 断开链接
+connection.end();
+```
+
+参数说明：
+
+| 参数               | 描述                                                         |
+| ------------------ | :----------------------------------------------------------- |
+| host               | 主机地址 （默认：localhost）                                 |
+| user               | 用户名                                                       |
+| password           | 密码                                                         |
+| port               | 端口号 （默认：3306）                                        |
+| database           | 数据库名                                                     |
+| charset            | 连接字符集（默认：'UTF8_GENERAL_CI'，注意字符集的字母都要大写） |
+| localAddress       | 此IP用于TCP连接（可选）                                      |
+| socketPath         | 连接到unix域路径，当使用 host 和 port 时会被忽略             |
+| timezone           | 时区（默认：'local'）                                        |
+| connectTimeout     | 连接超时（默认：不限制；单位：毫秒）                         |
+| stringifyObjects   | 是否序列化对象                                               |
+| typeCast           | 是否将列值转化为本地JavaScript类型值 （默认：true）          |
+| queryFormat        | 自定义query语句格式化方法                                    |
+| supportBigNumbers  | 数据库支持bigint或decimal类型列时，需要设此option为true （默认：false） |
+| bigNumberStrings   | supportBigNumbers和bigNumberStrings启用 强制bigint或decimal列以JavaScript字符串类型返回（默认：false） |
+| dateStrings        | 强制timestamp,datetime,data类型以字符串类型返回，而不是JavaScript Date类型（默认：false） |
+| debug              | 开启调试（默认：false）                                      |
+| multipleStatements | 是否许一个query中有多个MySQL语句 （默认：false）             |
+| flags              | 用于修改连接标志                                             |
+| ssl                | 使用ssl参数（与crypto.createCredenitals参数格式一至）或一个包含ssl配置文件名称的字符串，目前只捆绑Amazon RDS的配置文件 |
+
+## 2. nodeJS 操作数据库
+
+### 2.1. 添加数据
+
 
 
 
