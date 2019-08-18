@@ -376,8 +376,6 @@ app.get("/", (req, res) => {});
 
 关于req、res常用属性和方法，点击上述链接进入API文档查看。
 
-
-
 # 八、静态资源访问
 
 通过Express 提供的内置中间件 **<ins>express.static</ins>** ，我们可以实现访问静态资源（如图片、CSS、JavaScript等）的需求。例如，如果将图片、CSS、JavaScript 文件放在 public 目录下，你可以这么写：
