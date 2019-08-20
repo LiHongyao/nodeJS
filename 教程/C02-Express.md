@@ -444,7 +444,15 @@ connection.end(); // 关闭连接
 
 ## 2. 操作
 
-在连接数据库的情况下我们开始操作数据库链接对象：connection
+在连接数据库的情况下我们开始操作数据库链接对象：connection。
+
+mysql 数据库heros表中的字段信息：
+
+![](../资源/hero_types.jpg)
+
+mysql 数据库heros表中的数据信息：
+
+![](../资源/hero_datas.jpg)
 
 ### 2.1. 查询数据库信息
 
