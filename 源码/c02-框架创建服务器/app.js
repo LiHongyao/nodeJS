@@ -1,5 +1,7 @@
 // 1.导入express
 const express = require("express");
+
+
 // 2.创建express实例
 const app = express();
 // 3.配置
@@ -18,15 +20,46 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static("public"));
 
-// 4. 路由
-// 4.1. 导入路由
-const userRouter  = require("./routes/user");
-const loginRouter = require("./routes/login");
-const goodsRouter = require("./routes/goods");
-// 4.2. 应用路由
-app.use("/user", userRouter);
-app.use("/login", loginRouter);
-app.use("/goods", goodsRouter);
+const getConnection = require("./mysqlConnection");
+const db = getConnection();
+app.get("/heros", (req, res) => {
+    db.connect();
+    const sql = "SELECT * FROM heros";
+    function fn(err, sqlRes) {
+        if(err) {
+            console.log(err.message);
+        }else {
+            res.end(JSON.stringify(sqlRes));
+        }
+    }
+    db.query(sql, fn)
+    db.end();
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // 4. 路由
+// // 4.1. 导入路由
+// const userRouter = require("./routes/user");Í
+// const loginRouter = require("./routes/login");
+// const goodsRouter = require("./routes/goods");
+// // 4.2. 应用路由
+// app.use("/user", userRouter);
+// app.use("/login", loginRouter);
+// app.use("/goods", goodsRouter);
 
 // 5. 监听：http://127.0.0.1:8081"
 app.listen(8081, "127.0.0.1");

@@ -543,7 +543,7 @@ $ npm install mysql
 
 stips 2：在文件中导入mysql模块
 
-```
+```js
 const mysql = require("mysql");
 ```
 

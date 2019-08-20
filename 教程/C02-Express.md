@@ -404,13 +404,226 @@ app.use(express.static("public"));
 
 \2. 前端访问时，地址栏只需输入服务器地址 + express.static 参数类的路径和文件名称即可。
 
-# 九、操作数据库
+# 九、链接数据库
 
-# 十、文件操作
+## 1. 流程
 
-## 1. 上传
+a）、安装mysql模块
 
-## 2. 下载
+```shell
+$ npm i -S mysql
+```
+
+b）、导入mysql模块
+
+```js
+const mysql = require("mysql");
+```
+
+c）、链接数据库
+
+```js
+const connection = mysql.createConnection({
+    // 主机名
+    host: '127.0.0.1',
+    // 端口
+    port: '3306',
+    // 用户名
+    user: 'root',
+    // 密码
+    password: '1234',
+    // 数据库名
+    database: 'db_test'
+});
+connection.connect(); // 启动连接
+// 数据库操作...
+connection.end(); // 关闭连接
+```
+
+更多参数参考：<https://www.npmjs.com/package/mysql#connection-options>
+
+## 2. 操作
+
+在连接数据库的情况下我们开始操作数据库链接对象：connection
+
+### 2.1. 查询数据库信息
+
+**-> 语法形式：**
+
+```js
+connection.query(sql,function (err, sqlRes) {});
+```
+
+**-> 参数解读：**
+
+- `sql`：操作数据库的指令（sql语句）
+- `function(){}`：返回查询结果的回调函数
+
+**-> 代码示例：**
+
+```js
+connection.connect();
+const sql = "SELECT * FROM heros";
+function fn(err, sqlRes) {
+    if(err) {
+        console.log(err.message);
+    }else {
+        console.log(sqlRes);
+    }
+}
+connection.query(sql, fn)
+connection.end();  // 操作完数据库记得关闭链接
+```
+
+**-> 注意事项：**
+
+1）如果你想通过定时器来循环操作数据库，那么数据库的开启链接语句一定要放在这些语句之外。
+
+2）关闭链接语句要写的话也应该写在定时执行的函数里面，不然定时器执行一次，链接就会关掉，就无法在操作数据库了。
+
+3）关闭链接后，获取数据库链接对象只能重新执行*mysql.createConnection()*方法。
+
+4）不能多次重复调用 *.connect()* 方法，否则会报错。
+
+5）不能多次重复调用 *.end()* 方法，否则会报错。
+
+**-> 查询结果：**
+
+![](../资源/sql_query_res.png)
+
+**-> 遍历结果：**
+
+实际上查询出的结果是一个对象数组，我们可以通过下标与键取出其中详细数据，也能通过循环将其所有值遍历出来
+
+-> 1. 单独取值：
+
+```js
+reqRes.[0];
+reqRes.[0].name;
+```
+
+-> 2. 遍历取值
+
+```js
+for(let i = 0, len = reqRes.length; i < len; i++) {
+    console.log(reqRes[i]);
+}
+```
+
+-> 3. 将查询结果返回给前端
+
+![](../资源/sql_query_res_json.png)
+
+可以看到，都不需要做什么处理，直接把查询结果用 *JSON.parse(sqlRes)* 转换为字符串就可以发到前端了，前端在转换为对象数组就能直接用了
+
+-> 4. 条件查询
+
+![](../资源/sql_query_condition.png)
+
+-> 5. 预编译写法
+
+其实这里可以写成预编译的方式，可以避免sql注入的问题，所谓预编译就是说对于原本在sql里面写值换成`？`占位，然后传入一个数组进去补全这个占位符，也就是*connect.query* 方法会多一个参数，为一个数组，放入第二个位置。
+
+![](../资源/sql_query_ compile.png)
+
+### 2.2. 修改数据库信息
+
+**-> 语法形式：**
+
+```js
+connection.query(sql, sqlParams, function (err, sqlRes) {});
+```
+
+**-> 参数解读：**
+
+- `sql`：sql指令，如：*UPDATE heros SET location=? WHERE name=?*
+- `sqlParams`：sql参数，如：*["上路", "周瑜"]*
+- `function(){}`：执行结果回调函数
+
+**-> 代码示例：**
+
+![](../资源/sql_update.png)
+
+> 提示：我们可通过影响行数 *affectedRows* 属性判断是否修改成功。
+
+### 2.3. 添加数据信息
+
+**-> 语法形式：**
+
+```js
+connection.query(sql, sqlParams, function (err, sqlRes) {});
+```
+
+**-> 参数解读：**
+
+- `sql`：sql指令，如：*INSERT INTO heros (name, skill) VALUES (?, ?)*
+- `sqlParams`：sql参数，如：*["貂蝉", "绽·风华"]*
+- `function(){}`：执行结果回调函数
+
+**-> 代码示例：**
+
+![](../资源/sql_insert.png)
+
+### 2.4. 删除数据信息
+
+**-> 语法形式：**
+
+```js
+connection.query(sql, sqlParams, function (err, sqlRes) {});
+```
+
+**-> 参数解读：**
+
+- `sql`：sql指令，如：*DELETE FROM heros WHERE name=?*
+- `sqlParams`：sql参数，如：*["貂蝉"]*
+- `function(){}`：执行结果回调函数
+
+**-> 代码示例：**
+
+![](../资源/sql_delete.png)
+
+## 3. 链接数据库封装
+
+### 3.1. 概述
+
+在上面我们每次操作数据库都要先连接下数据库，然后才能操作，那么我们是否能够把数据的链接封装起来呢，这样每次直接获取链接对象，来操作数据库即可，会方便不少。
+
+### 3.2. 示例
+
+```js
+const mysql = require("mysql");
+const defaultOptions = {
+    host: '127.0.0.1',
+    port: '3306',
+    user: 'root',
+    password: '1234',
+    database: 'db_test'
+}
+function getConnection(options = defaultOptions) {
+    return mysql.createConnection(options);
+}
+module.exports = getConnection;
+```
+
+使用
+
+```js
+const getConnection = require("./mysqlConnection");
+const db = getConnection();
+app.get("/heros", (req, res) => {
+    db.connect();
+    const sql = "SELECT * FROM heros";
+    function fn(err, sqlRes) {
+        if(err) {
+            console.log(err.message);
+        }else {
+            res.end(JSON.stringify(sqlRes));
+        }
+    }
+    db.query(sql, fn)
+    db.end();
+});
+```
 
 
 
