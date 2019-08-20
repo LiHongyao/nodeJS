@@ -17,7 +17,7 @@ Express 框架核心特性：
 通过npm安装：
 
 ```shell
-$ npm i -S express
+  $ npm i -S express
 ```
 
 安装完成后，我们可通过如下指令查看express版本号：
@@ -27,7 +27,7 @@ $ npm list express
 └── express@4.17.1 
 ```
 
-不过一般以下几个重要的模块是需要与express 框架一起安装的：
+以下模块是需要与express 框架一起安装的：
 
 - `body-parser` ： nodeJS中间件，用于处理 JSON, Raw, Text 和 URL 编码的数据。
 
@@ -44,19 +44,21 @@ $ npm i -S body-parser cookie-parser multer
 在项目根目录创建app.js文件
 
 ```js
-// 导入express
-const 导入express = require("express");
-// 创建express实例
-const app= express();
-// 监听http://127.0.0.1:8081"
+// 1. 导入express
+const express = require("express");
+// 2. 创建express实例
+const app = express();
+// 3. 监听 http://127.0.0.1:8081"
 app.listen(8081, "127.0.0.1");
-// 打印输出提示信息
-console.log("running at http://127.0.0.1:8081");
-// 测试
-app.get("/", (req, res) => {
+// 4. 监听GET请求，用户访问路径‘/’
+app.get("/", function (req, res) {
+    // req -> request -> 请求对象
+    // res -> response -> 响应对象
   	// 响应，向前端发送数据
-    res.send("Hello, exporess!");
+    res.send("Hello, express!");
 });
+// 5. 打印输出提示信息
+console.log("server running at http://127.0.0.1:8081");
 ```
 
 终端执行脚本，运行app.js
@@ -65,7 +67,7 @@ app.get("/", (req, res) => {
 $ node app.js
 ```
 
-在浏览器输入：“http://127.0.0.1:8081”，可看到页面输出“Hello, exporess!”
+在浏览器输入：“http://127.0.0.1:8081”，可看到页面输出“Hello, express!”
 
 # 四、处理跨域
 
@@ -148,15 +150,14 @@ app.METHOD(PATH, HANDLER)
 - `HANDLER`：当路由匹配时要执行的处理函数
 
 ```js
-// GET 请求
-app.get("/", (req, res) => {
-    res.send('Got a GET request')
+// GET请求
+app.get("/", function(req, res) {
+    console.log("有人通过GET访问：/");
+}); 
+// POST请求
+app.post("/login", function(req, res) {
+    console.log("有人通过POST访问：/login");
 });
-
-// POST 请求
-app.post('/usr', function (req, res) {
-  res.send('Got a POST request at /usr')
-})
 ```
 
 路由方法的第一个参数可以为一个字符串，也可以为一个数组，为字符串时还可以使用正则匹配。
@@ -166,135 +167,123 @@ app.post('/usr', function (req, res) {
 app.get("/ab*cd", (req, res) => {
     res.send("正则匹配");
 });
-
 // 路由处理也可以是一个数组
 app.post(["/usr", "/user"], (req, res) => {
     res.send();
-});
+});                  
 ```
 
 ## 2. 模块化配置
 
-将路由定义在app.js文件中，不利于阅读维护，特别是在项目比较大的情况下，所以我们需要将路由模块化。比如项目有用户、登陆和商品功能，那我们就定义3个路由，文件结构如下：
+将路由定义在app.js文件中，不利于阅读维护，特别是在项目比较大的情况下，所以我们需要将路由模块化。比如项目有用户、和商品功能，那我们就定义2个路由，文件结构如下：
 
 ```
 |- proj
 	|- routes
   		|- user.js
-  		|- login.js
-  		|- goods.js
+  		|- order.js
   |- app.js	
+```
+
+路由分析：
+
+```
+用户路由 
+-> 信息 /user          -> GET  http://127.0.0.1:8080/user
+-> 登陆 /user/login		 -> POST http://127.0.0.1:8080/user/login
+-> 注册 /user/register -> POST http://127.0.0.1:8080/user/register
+
+订单路由 
+-> 查询 /order					-> GET http://127.0.0.1:8080/order
+-> 增加 /add						-> GET http://127.0.0.1:8080/order/add
+-> 删除 /delete					-> GET http://127.0.0.1:8080/order/delete
+-> 修改 /update					-> GET http://127.0.0.1:8080/order/update
 ```
 
 *user.js*
 
 ```js
-// 用户路由
-let express = require("express");
-let router  = express.Router();
-
-// http://127.0.0.1:8081/user
-router.get("/", (req, res, next) => {
-    res.send("访问用户信息!");
+/* 用户路由 */
+// 1. 导入express模块
+const express = require("express");
+// 2. 获取路由对象
+const router  = express.Router();
+// 3. 处理路由对象
+router.get("/", (req, res) => {
+    res.send("客户端想要获取用户信息");
+});
+router.post("/login", (req, res) => {
+    res.send("客户端想要执行登陆操作");
+});
+router.post("/register", (req, res) => {
+    res.send("客户端想要执行注册操作");
 });
 
-// http://127.0.0.1:8081/user/orders
-router.get("/orders", (req, res, next) => {
-    res.send("访问用户订单!");
-});
-
-// http://127.0.0.1:8081/user/modify
-router.post("/modify", (req, res, next) => {
-    res.send("修改用户信息!");
-});
-
+// 4. 导出路由
 module.exports = router;
 ```
 
-*login.js*
+*order.js*
 
 ```js
-// 登陆路由
-let express = require("express");
-let router  = express.Router();
-
-// http://127.0.0.1:8081/login
-router.post("/", (req, res, next) => {
-    // 读取参数
-    console.log(req.body);
-    res.send("用户登陆!");
+/* 订单路由 */
+// 1. 导入express模块
+const express = require("express");
+// 2. 获取路由对象
+const router  = express.Router();
+// 3. 处理路由对象
+router.get("/", (req, res) => {
+    res.send("客户端想要获取订单信息");
+});
+router.get("/add", (req, res) => {
+    res.send("客户端想要添加一条订单");
+});
+router.get("/delete", (req, res) => {
+    res.send("客户端想要删除一条订单");
+});
+router.get("/update", (req, res) => {
+    res.send("客户端想要更新一条订单");
 });
 
-module.exports = router;
-```
-
-*goods.js*
-
-```js
-// 主页路由
-let express = require("express");
-let router  = express.Router();
-
-// http://127.0.0.1:8081/goods/query
-router.get(["/", "/query"], (req, res, next) => {
-    res.send("查询商品!");
-});
-
-// http://127.0.0.1:8081/goods/push
-router.get("/push", (req, res, next) => {
-    res.send("添加商品!");
-});
-
-// http://127.0.0.1:8081/goods/delete
-router.get("/delete", (req, res, next) => {
-    res.send("移除商品!");
-});
-
-// http://127.0.0.1:8081/goods/modify
-router.get("/modify", (req, res, next) => {
-    res.send("修改商品!");
-});
-
+// 4. 导出路由
 module.exports = router;
 ```
 
 *app.js*
 
 ```js
-// 1.导入express
+// 1. 导入express
 const express = require("express");
-// 2.创建express实例
+// 2. 创建express实例
 const app = express();
-// 3.配置
+// 3. 处理跨域
 app.all("*", (req, res, next) => {
     //设置允许跨域的域名，*代表允许任意域名跨域
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin","*");
     //允许的header类型
-    res.header("Access-Control-Allow-Headers", "content-type");
+    res.header("Access-Control-Allow-Headers","content-type");
     //跨域允许的请求方式 
-    res.header("Access-Control-Allow-Methods", "DELETE,PUT,POST,GET,OPTIONS");
-    next();
+    res.header("Access-Control-Allow-Methods","DELETE,PUT,POST,GET,OPTIONS");
+    if (req.method.toLowerCase() == 'options')
+        res.send(200);  // 让options尝试请求快速结束
+    else
+        next();
 });
-// 3. 中间件
-const bodyParser = require("body-parser");
+// 4. 监听 http://127.0.0.1:8081"
+app.listen(8081, "127.0.0.1");
 
+// 5. 中间件
+const bodyParser = require("body-parser");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// 4. 路由
-// 4.1. 导入路由
+// 6. 处理路由
 const userRouter  = require("./routes/user");
-const loginRouter = require("./routes/login");
-const goodsRouter = require("./routes/goods");
-// 4.2. 应用路由
+const orderRouter = require("./routes/order");
 app.use("/user", userRouter);
-app.use("/login", loginRouter);
-app.use("/goods", goodsRouter);
+app.use("/order", orderRouter);
 
-// 5. 监听：http://127.0.0.1:8081"
-app.listen(8081, "127.0.0.1");
-
-// 6. 打印输出提示信息
+// 7. 打印输出提示信息
 console.log("server running at http://127.0.0.1:8081");
 ```
 
@@ -313,7 +302,7 @@ console.log("server running at http://127.0.0.1:8081");
 - 前端代码需要传递请求头，请求参数需以JSON字符串形式传递。
 
 - 后端代码需要添加中间件 `body-parser`（**牢记**）
-- 经过中间件的处理，参数会自动的添加到req请求对象上，作为其一个属性query
+- 经过中间件的处理，参数会自动的添加到req请求对象上，作为其一个属性body
 
 ![](../资源/express-post-query.png)
 
@@ -371,7 +360,11 @@ app.post("/login", (req, res) => {
 在Express中，请求对象与相应对象作为路由处理函数的参数返回，如下所示：
 
 ```js
-app.get("/", (req, res) => {});
+app.get("/", (req, res) => {
+  // req.body  -> 读取post参数
+  // req.query -> 读取get参数
+  // res.send  -> 响应客户端
+});
 ```
 
 关于req、res常用属性和方法，点击上述链接进入API文档查看。
@@ -632,6 +625,10 @@ app.get("/heros", (req, res) => {
     db.end();
 });
 ```
+
+## 4. 异常
+
+链接数据库时报错：*client does not support authentication protocol requested by server consider*，解决办法参考[这里](https://blog.csdn.net/m_amazing/article/details/84313789>)。
 
 
 
