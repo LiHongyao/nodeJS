@@ -1,32 +1,35 @@
 function get() {
-    console.log("GET");
-    fetch("http://127.0.0.1:8081/", {
+    fetch("http://127.0.0.1:8081/heros?name=吕布", {
         method: "GET"
-    }).then(function (res) {
-        // promise
-        return res.text();
-    }).then(function (data) {
+    })
+    .then(response => response.json())
+    .then(data => {
         console.log(data);
+    }, err => {
+        console.log(err);
     });
 }
 
 function post() {
-    fetch("http://127.0.0.1:8081/user/login", {
-        method: "POST",
-        body: JSON.stringify({
-            username: "admin",
-            password: "123"
-        }),
-        headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
+    // 1. 创建请求对象
+    let xhr = new XMLHttpRequest();
+    // 2. 配置请求
+    xhr.open("POST", "http://127.0.0.1:8081/user/login", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.responseType = "json";
+    // 3. 发送请求
+    xhr.send(JSON.stringify({
+        username: "admin",
+        password: "123"
+    }));
+    // 4. 监听请求
+    xhr.onload = function() {
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            console.log(xhr.response);
+        }else {
+            console.log("err");
         }
-    }).then(function (res) {
-        // promise
-        return res.json();
-    }).then(function (data) {
-        console.log(data);
-    });
+    }
 }
 
 // 客户端 -> 服务器 -> 数据库

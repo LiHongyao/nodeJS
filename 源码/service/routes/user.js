@@ -10,6 +10,7 @@ router.get("/", (req, res) => {
 router.post("/login", (req, res) => {
     // 解构参数
     let {username, password} = req.body;
+    console.log(username, password);
     // 数据库操作
     // 判断是否登陆成功
     if(username == "admin" && password == "123") {
