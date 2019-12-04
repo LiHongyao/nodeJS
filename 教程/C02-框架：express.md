@@ -17,7 +17,7 @@ Express 框架核心特性：
 通过npm安装：
 
 ```shell
-  $ npm i -S express
+$ npm i -S express
 ```
 
 安装完成后，我们可通过如下指令查看express版本号：
