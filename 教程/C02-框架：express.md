@@ -48,11 +48,11 @@ $ npm i -S body-parser cookie-parser multer
 const express = require("express");
 // 2. 创建express实例
 const app = express();
-// 3. 监听 http://127.0.0.1:8081"
+// 3. 监听 http://127.0.0.1:8081
 app.listen(8081, "127.0.0.1");
-// 4. 监听GET请求，用户访问路径‘/’
-app.get("/", function (req, res) {
-    // req -> request -> 请求对象
+// 4. 监听GET请求，用户访问路径 /
+app.get("/", (req, res) => {
+    // req -> request  -> 请求对象
     // res -> response -> 响应对象
   	// 响应，向前端发送数据
     res.send("Hello, express!");
@@ -67,7 +67,7 @@ console.log("server running at http://127.0.0.1:8081");
 $ node app.js
 ```
 
-在浏览器输入：“http://127.0.0.1:8081”，可看到页面输出“Hello, express!”
+在浏览器输入：http://127.0.0.1:8081，可看到页面输出“Hello, express!”
 
 > 注意：*listen* 方法中的ip地址设置的是哪些ip能访问该服务器，而不是服务器地址，如果允许局域网内的所有设备访问该服务器，在设置 *listen* 方法的 ip 参数时可以设置为 ”0.0.0.0“，这样，局域网内的其他设备就可以通过服务器所在电脑的 ”ip地址:端口号“ 访问啦。
 
@@ -77,11 +77,11 @@ $ node app.js
 
 ```js
 app.all("*", (req, res, next) => {
-    //设置允许跨域的域名，*代表允许任意域名跨域
+    // 设置允许跨域的域名，*代表允许任意域名跨域
     res.header("Access-Control-Allow-Origin","*");
-    //允许的header类型
+    // 允许的header类型
     res.header("Access-Control-Allow-Headers","content-type");
-    //跨域允许的请求方式 
+    // 跨域允许的请求方式 
     res.header("Access-Control-Allow-Methods","DELETE,PUT,POST,GET,OPTIONS");
     if (req.method.toLowerCase() == 'options')
         res.send(200);  // 让options尝试请求快速结束
@@ -96,11 +96,11 @@ app.all("*", (req, res, next) => {
 
 ```js
 app.all("*", (req, res, next) => {
-    //设置允许跨域的域名，*代表允许任意域名跨域
+    // 设置允许跨域的域名，*代表允许任意域名跨域
     res.header("Access-Control-Allow-Origin","http://127.0.0.1:5500");
-    //允许的header类型
+    // 允许的header类型
     res.header("Access-Control-Allow-Headers","content-type");
-    //跨域允许的请求方式 
+    // 跨域允许的请求方式 
     res.header("Access-Control-Allow-Methods","DELETE,PUT,POST,GET,OPTIONS");
     if (req.method.toLowerCase() == 'options')
         res.send(200);  //让options尝试请求快速结束
@@ -120,15 +120,15 @@ app.all("*", (req,res,next) => {
         "http://127.0.0.1:5502"
     ];
     if(origin_list.includes(req.headers.origin.toLowerCase())) {
-        //设置允许跨域的域名，*代表允许任意域名跨域
+        // 设置允许跨域的域名，*代表允许任意域名跨域
         res.header("Access-Control-Allow-Origin", req.headers.origin);
     }
-    //允许的header类型
+    // 允许的header类型
     res.header("Access-Control-Allow-Headers","content-type");
-    //跨域允许的请求方式 
+    // 跨域允许的请求方式 
     res.header("Access-Control-Allow-Methods","DELETE,PUT,POST,GET,OPTIONS");
     if (req.method.toLowerCase() == 'options')
-        res.send(200);  //让options尝试请求快速结束
+        res.send(200);  // 让options尝试请求快速结束
     else
         next();
 });
@@ -141,38 +141,30 @@ app.all("*", (req,res,next) => {
 路由是指如何定义应用的端点（URIs）以及如何响应客户端的请求。路由是一个由URI、HTTP请求（GET/POST等）和若干个句柄组成，它的语法结构如下：
 
 ```js
-app.METHOD(PATH, HANDLER)
+app.method(path:string, hander:function)
 ```
 
 语法解读：
 
 - `app`：express对象的一个实例
-- `METHOD`：http请求方法（get/post），小写
-- `PATH`：服务器上的路径
-- `HANDLER`：当路由匹配时要执行的处理函数
+- `method`：http请求方法（get/post），小写
+- `path`：路径，接口地址 = 服务器地址 + path
+- `hande`：当路由匹配时要执行的处理函数
 
 ```js
 // GET请求
-app.get("/", function(req, res) {
+// http://127.0.0.1:8081/
+app.get("/", (req, res) => {
     console.log("有人通过GET访问：/");
 }); 
+app.get("/register", (req, res)=>{
+
+})
 // POST请求
-app.post("/login", function(req, res) {
+// http://127.0.0.1:8081/login
+app.post("/login", (req, res)  => {
     console.log("有人通过POST访问：/login");
-});
-```
-
-路由方法的第一个参数可以为一个字符串，也可以为一个数组，为字符串时还可以使用正则匹配。
-
-```js
-// 正则匹配，*表示0个或多个字符
-app.get("/ab*cd", (req, res) => {
-    res.send("正则匹配");
-});
-// 路由处理也可以是一个数组
-app.post(["/usr", "/user"], (req, res) => {
-    res.send();
-});                  
+});        
 ```
 
 ## 2. 模块化配置
@@ -190,64 +182,59 @@ app.post(["/usr", "/user"], (req, res) => {
 路由分析：
 
 ```
-用户路由 
--> 信息 /user          -> GET  http://127.0.0.1:8080/user
--> 登陆 /user/login		 -> POST http://127.0.0.1:8080/user/login
--> 注册 /user/register -> POST http://127.0.0.1:8080/user/register
+- 用户接口 user
+> 登录接口：POST /login
+参数1 => username:string required
+参数2 => password:string required
 
-订单路由 
--> 查询 /order					-> GET http://127.0.0.1:8080/order
--> 增加 /add						-> GET http://127.0.0.1:8080/order/add
--> 删除 /delete					-> GET http://127.0.0.1:8080/order/delete
--> 修改 /update					-> GET http://127.0.0.1:8080/order/update
+> 注册接口：POST /register
+参数1 => username:string required
+参数2 => password:string required
+参数3 => tel: string options
+
+
+- 订单接口 order
+> 增 POST /order/add
+> 删 GET  /order/delete
+> 查 GET  /order/query
+> 改 POST /order/modify
 ```
 
 *user.js*
 
 ```js
-/* 用户路由 */
-// 1. 导入express模块
-const express = require("express");
-// 2. 获取路由对象
-const router  = express.Router();
-// 3. 处理路由对象
-router.get("/", (req, res) => {
-    res.send("客户端想要获取用户信息");
-});
+// 1. 创建路由实例
+const router = require("express").Router();
+// 2. 配置路由
 router.post("/login", (req, res) => {
-    res.send("客户端想要执行登陆操作");
+    console.log("「登录接口」被调用");
 });
 router.post("/register", (req, res) => {
-    res.send("客户端想要执行注册操作");
+    console.log("「注册接口」被调用");
 });
-
-// 4. 导出路由
+// 3. 导出路由
 module.exports = router;
 ```
 
 *order.js*
 
 ```js
-/* 订单路由 */
-// 1. 导入express模块
-const express = require("express");
-// 2. 获取路由对象
-const router  = express.Router();
-// 3. 处理路由对象
+// 1. 创建路由实例
+const router = require("express").Router();
+// 2. 配置路由
 router.get("/", (req, res) => {
-    res.send("客户端想要获取订单信息");
+    console.log("「查询订单接口」被调用");
 });
-router.get("/add", (req, res) => {
-    res.send("客户端想要添加一条订单");
+router.post("/add", (req, res) => {
+    console.log("「添加订单接口」被调用");
 });
-router.get("/delete", (req, res) => {
-    res.send("客户端想要删除一条订单");
+router.post("/delete", (req, res) => {
+    console.log("「删除订单接口」被调用");
 });
-router.get("/update", (req, res) => {
-    res.send("客户端想要更新一条订单");
+router.post("/modify", (req, res) => {
+    console.log("「修改订单接口」被调用");
 });
-
-// 4. 导出路由
+// 3. 导出路由
 module.exports = router;
 ```
 
@@ -255,37 +242,31 @@ module.exports = router;
 
 ```js
 // 1. 导入express
-const express = require("express");
-// 2. 创建express实例
+const express = require("express")();
+// 2. 获取express实例
 const app = express();
 // 3. 处理跨域
 app.all("*", (req, res, next) => {
-    //设置允许跨域的域名，*代表允许任意域名跨域
+    // 设置允许跨域的域名，*代表允许任意域名跨域 CROS
     res.header("Access-Control-Allow-Origin","*");
-    //允许的header类型
+    // 允许的header类型
     res.header("Access-Control-Allow-Headers","content-type");
-    //跨域允许的请求方式 
+    // 跨域允许的请求方式 
     res.header("Access-Control-Allow-Methods","DELETE,PUT,POST,GET,OPTIONS");
     if (req.method.toLowerCase() == 'options')
         res.send(200);  // 让options尝试请求快速结束
     else
         next();
 });
-// 4. 监听 http://127.0.0.1:8081"
-app.listen(8081, "127.0.0.1");
-
-// 5. 中间件
-const bodyParser = require("body-parser");
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
-// 6. 处理路由
+// 4. 处理路由
 const userRouter  = require("./routes/user");
 const orderRouter = require("./routes/order");
-app.use("/user", userRouter);
-app.use("/order", orderRouter);
+app.use("/", userRouter);
+app.use("/orders", orderRouter);
 
-// 7. 打印输出提示信息
+// 5. 监听 http://127.0.0.1:8081
+app.listen(8081, "0.0.0.0");
+// 6. 打印输出提示信息
 console.log("server running at http://127.0.0.1:8081");
 ```
 
@@ -293,7 +274,7 @@ console.log("server running at http://127.0.0.1:8081");
 
 ### 2.1. GET
 
-在Express中直接使用请求对象 `req` 的 `query` 属性即可获取，而且最终获取的还是已经被转换为对象了的参数，在原生nodeJS实现中，我们还需要使用 `queryString` 模块来进行显式的转换。
+通过 `req.query` 即可获取GET请求参数，而且最终获取的还是已经被转换为对象了的参数，在原生nodeJS实现中，我们还需要使用 `queryString` 模块来进行显式的转换。
 
 ![](../资源/express-get-query.png)
 
@@ -331,13 +312,13 @@ fetch("http://127.0.0.1:8081/login", {
 后端代码：
 
 ```js
-// 导入中间件 body-parser
+// 4. 中间件
 const bodyParser = require("body-parser");
 // application/x-www-form-urlencoded 解析
 app.use(bodyParser.urlencoded({extended:false}));
 // application/json 解析
 app.use(bodyParser.json());
-// 监听post请求
+// 5. 路由配置
 app.post("/login", (req, res) => {
     // 打印参数
     console.log(req.body);
@@ -359,13 +340,13 @@ app.post("/login", (req, res) => {
 - [request](http://www.expressjs.com.cn/4x/api.html#req)：HTTP请求对象，包含了请求查询字符串，参数，内容，HTTP 头部等属性
 - [response](http://www.expressjs.com.cn/4x/api.html#res)：HTTP 响应对象，即在接收到请求时向客户端发送的 HTTP 响应数据
 
-在Express中，请求对象与相应对象作为路由处理函数的参数返回，如下所示：
+在Express中，请求对象与响应对象作为路由处理函数的参数返回，如下所示：
 
 ```js
 app.get("/", (req, res) => {
-  // req.body  -> 读取post参数
-  // req.query -> 读取get参数
-  // res.send  -> 响应客户端
+   req.body  // => 读取post参数
+   req.query // => 读取get参数
+   res.send  // => 响应客户端
 });
 ```
 
@@ -373,10 +354,10 @@ app.get("/", (req, res) => {
 
 # 八、静态资源访问
 
-通过Express 提供的内置中间件 **<ins>express.static</ins>** ，我们可以实现访问静态资源（如图片、CSS、JavaScript等）的需求。例如，如果将图片、CSS、JavaScript 文件放在 public 目录下，你可以这么写：
+通过Express 提供的内置中间件 **<ins>express.static</ins>** ，我们可以实现访问静态资源（如图片、CSS、JavaScript等）的需求。例如，如果将图片、CSS、JavaScript 文件放在 www 目录下，你可以这么写：
 
 ```js
-app.use(express.static("public"));
+app.use(express.static("www"));
 ```
 
 那我们即可在浏览器中通过”http://127.0.0.1:8081/images/logo.png“访问静态资源了。
@@ -387,7 +368,7 @@ app.use(express.static("public"));
 |- proj
 	 └── routes
 	 └── app.js
-	 └── public
+	 └── www
   	 		└── images
   	 		└── javascripts 		
   	 		└── stylesheets
@@ -397,7 +378,7 @@ app.use(express.static("public"));
 
 \1. 在最开始处使用express内置的static中间件，来实现静态文件的访问。
 
-\2. 前端访问时，地址栏只需输入服务器地址 + express.static 参数类的路径和文件名称即可。
+\2. 前端访问时，地址栏只需输入服务器地址 + express.static 参数内的路径和文件名称即可。
 
 # 九、链接数据库
 
@@ -630,7 +611,13 @@ app.get("/heros", (req, res) => {
 
 ## 4. 异常
 
-链接数据库时报错：*client does not support authentication protocol requested by server consider*，解决办法参考[这里](https://blog.csdn.net/m_amazing/article/details/84313789>)。
+> 1. 链接数据库时报错：*client does not support authentication protocol requested by server consider*，
+
+```mysql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '自己的密码';
+```
+
+
 
 
 
