@@ -2,9 +2,6 @@
 const router = require("express").Router();
 const getConnection = require("../mysqlConnection");
 // 2. 处理路由
-router.get("/", (req, res) => {
-    console.log("...");
-})
 // => 登陆
 router.post("/login", (req, res) => {
     console.log("「登陆接口」被调用...");
@@ -29,7 +26,7 @@ router.post("/login", (req, res) => {
                 code: 500,
                 data: "服务器异常"
             })
-        } else if (sqlRes.length === 0) {
+        } else if (sqlRes.length === 0) { 
             res.send({
                 code: 201,
                 data: "用户不存在"

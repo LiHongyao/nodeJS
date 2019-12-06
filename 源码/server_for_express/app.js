@@ -4,6 +4,7 @@ const { host, port } = require("./http");
 // 2. 创建express实例
 const app = express();
 // 3. 处理跨域
+// => CROS 跨域
 app.all("*", (req, res, next) => {
     //设置允许跨域的域名，*代表允许任意域名跨域
     res.header("Access-Control-Allow-Origin", "*");
@@ -16,6 +17,7 @@ app.all("*", (req, res, next) => {
     else
         next();
 });
+
 // 4. 静态资源 
 app.use(express.static("www"));
 // 5. 中间件
@@ -24,13 +26,16 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: false }));
 // application/json 解析
 app.use(bodyParser.json());
-// 6. 监听 
-app.listen(port, "0.0.0.0");
-// 7. 处理路由
+// 6. 处理路由
 const userRouter = require("./routes/user");
 const heroRouter = require("./routes/heros");
+const crosRouter = require("./routes/cros");
 app.use("/", userRouter);
 app.use("/heros", heroRouter);
+app.use("/cros", crosRouter);
+
+// 7. 监听 
+app.listen(port, "0.0.0.0");
 // 8. 打印输出提示信息
 console.log(`server running at http://${host}:${port}`);
 
