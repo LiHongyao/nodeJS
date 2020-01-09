@@ -6,16 +6,25 @@ const static = require('koa-static');
 const router = require('koa-router')(); // 注意：引入的方式
 const app = new Koa();
 
-router.get('/', (ctx, next) => {
-	ctx.body = "Hello koa!";
+
+const ModelDb = require('./db')
+
+router.get('/', async (ctx, next) => {
+	// ctx.body = "Hello koa!";
+	let data = await ModelDb.query()
+	ctx.body = data
+
 })
 router.get('/info', (ctx, next) => {
-	let {query, querystring} = ctx.requeset;
+	let {
+		query,
+		querystring
+	} = ctx.requeset;
 	ctx.body = {
 		query,
 		querystring
 	}
-	
+
 });
 router.post('/login', async (ctx) => {
 	console.log(ctx.request.body);
@@ -30,7 +39,7 @@ app.use(cors());
 app.use(bodyParser());
 app.use(router.routes());
 app.use(static(
-    path.join(__dirname, "./www")
+	path.join(__dirname, "./www")
 ))
 app.use(router.allowedMethods());
 
