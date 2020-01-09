@@ -32,13 +32,13 @@ console.log("server running at http://127.0.0.1:8081.");
 
 调用http模块的createServer方法就能创建一个服务器对象，这个方法接收一个专门用于处理用户请求的回调函数参数，然后通过返回的对象的listen方法可以监听8081端口。
 
-![](../资源/start.png)
+![](./images/start.png)
 
 ## 2. 注意事项
 
 初始化时这里是发起了两次请求的，见下边图，红色圈中的地方，也可见下图打印出来的日志， 原因是还发起了一次对图标（favicon.ico）的请求。
 
-![](../资源/req-debug.png)
+![](./images/req-debug.png)
 
 ## 3. 过滤对图标的请求
 
@@ -46,7 +46,7 @@ console.log("server running at http://127.0.0.1:8081.");
 if(req.url === "/favicon.ico") return;
 ```
 
-![](../资源/filter-favicon.png)
+![](./images/filter-favicon.png)
 
 # 三、通过 node 服务器启动项目
 
@@ -291,7 +291,7 @@ console.log("server running at http://127.0.0.1:8081.");
 
 这里假设get请求为：*<http://127.0.0.1:8081/orders?id=1&page=2&size=10>*，服务器输出效果如下：
 
-![](../资源/url-get-parse.png)
+![](./images/url-get-parse.png)
 
 解读：
 
@@ -322,7 +322,7 @@ console.log("server running at http://127.0.0.1:8081.");
 
 效果如下：
 
-![](../资源/url-get-querystring.png)
+![](./images/url-get-querystring.png)
 
 实际上，我们也可以不通过 querystring 模块来处理，在url的parse方法中，可以传递第二个参数，如果参数设置为true，则会自动将query转成对象。就像下面这样：
 
@@ -330,7 +330,7 @@ console.log("server running at http://127.0.0.1:8081.");
 url.parse(req.url, true)
 ```
 
-![](../资源/url-get.png)
+![](./images/url-get.png)
 
 ### 3.3. POST -> 获取路径、参数
 
@@ -381,7 +381,7 @@ $.post({
 
 服务端显示结果如下：
 
-![](../资源/url-post.png)
+![](./images/url-post.png)
 
 ## 4. 路由处理
 
@@ -495,7 +495,7 @@ $.post({
 
 \ 调试界面
 
-![](../资源/res-json.png)
+![](./images/res-json.png)
 
 # 六、链接数据库
 

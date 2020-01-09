@@ -1,23 +1,39 @@
-const Koa = require("koa");
+const Koa = require('koa');
+const cors = require('koa2-cors');
+const bodyParser = require('koa-bodyparser');
+const path = require('path');
+const static = require('koa-static');
+const router = require('koa-router')(); // 注意：引入的方式
 const app = new Koa();
-const router = require("koa-router")();
 
-app.use(async (ctx, next) => {
-    console.log(`${ctx.request.method} ${ctx.request.url}`);
-    await next();
+router.get('/', (ctx, next) => {
+	ctx.body = "Hello koa!";
+})
+router.get('/info', (ctx, next) => {
+	let {query, querystring} = ctx.requeset;
+	ctx.body = {
+		query,
+		querystring
+	}
+	
+});
+router.post('/login', async (ctx) => {
+	console.log(ctx.request.body);
+	ctx.body = JSON.stringify({
+		code: 200,
+		message: "操作成功!"
+	})
 });
 
 
-router.get('/', async (ctx, next) => {
-    ctx.response.body = "<h1>Hello, Koa!</h1>";
-});
-router.get('/info', async (ctx, next) => {
-    ctx.response.body = JSON.stringify({
-        name: "木子李",
-        tel: "17398888669"
-    });
-});
-
+app.use(cors());
+app.use(bodyParser());
 app.use(router.routes());
-app.listen(3000);
-console.log("server running at http://localhost:3000/")
+app.use(static(
+    path.join(__dirname, "./www")
+))
+app.use(router.allowedMethods());
+
+app.listen(3000, () => {
+	console.log('server running at http://localhost:3000');
+});

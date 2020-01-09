@@ -276,7 +276,7 @@ console.log("server running at http://127.0.0.1:8081");
 
 通过 `req.query` 即可获取GET请求参数，而且最终获取的还是已经被转换为对象了的参数，在原生nodeJS实现中，我们还需要使用 `queryString` 模块来进行显式的转换。
 
-![](../资源/express-get-query.png)
+![](./images/express-get-query.png)
 
 ### 2.2. POST
 
@@ -287,7 +287,7 @@ console.log("server running at http://127.0.0.1:8081");
 - 后端代码需要添加中间件 `body-parser`（**牢记**）
 - 经过中间件的处理，参数会自动的添加到req请求对象上，作为其一个属性body
 
-![](../资源/express-post-query.png)
+![](./images/express-post-query.png)
 
 前端代码：
 
@@ -424,11 +424,11 @@ connection.end(); // 关闭连接
 
 mysql 数据库heros表中的字段信息：
 
-![](../资源/hero_types.jpg)
+![](./images/hero_types.jpg)
 
 mysql 数据库heros表中的数据信息：
 
-![](../资源/hero_datas.jpg)
+![](./images/hero_datas.jpg)
 
 ### 2.1. 查询数据库信息
 
@@ -473,7 +473,7 @@ connection.end();  // 操作完数据库记得关闭链接
 
 **-> 查询结果：**
 
-![](../资源/sql_query_res.png)
+![](./images/sql_query_res.png)
 
 **-> 遍历结果：**
 
@@ -496,19 +496,19 @@ for(let i = 0, len = reqRes.length; i < len; i++) {
 
 -> 3. 将查询结果返回给前端
 
-![](../资源/sql_query_res_json.png)
+![](./images/sql_query_res_json.png)
 
 可以看到，都不需要做什么处理，直接把查询结果用 *JSON.parse(sqlRes)* 转换为字符串就可以发到前端了，前端在转换为对象数组就能直接用了
 
 -> 4. 条件查询
 
-![](../资源/sql_query_condition.png)
+![](./images/sql_query_condition.png)
 
 -> 5. 预编译写法
 
 其实这里可以写成预编译的方式，可以避免sql注入的问题，所谓预编译就是说对于原本在sql里面写值换成`？`占位，然后传入一个数组进去补全这个占位符，也就是*connect.query* 方法会多一个参数，为一个数组，放入第二个位置。
 
-![](../资源/sql_query_ compile.png)
+![](./images/sql_query_ compile.png)
 
 ### 2.2. 修改数据库信息
 
@@ -526,7 +526,7 @@ connection.query(sql, sqlParams, function (err, sqlRes) {});
 
 **-> 代码示例：**
 
-![](../资源/sql_update.png)
+![](./images/sql_update.png)
 
 > 提示：我们可通过影响行数 *affectedRows* 属性判断是否修改成功。
 
@@ -546,7 +546,7 @@ connection.query(sql, sqlParams, function (err, sqlRes) {});
 
 **-> 代码示例：**
 
-![](../资源/sql_insert.png)
+![](./images/sql_insert.png)
 
 ### 2.4. 删除数据信息
 
@@ -564,7 +564,7 @@ connection.query(sql, sqlParams, function (err, sqlRes) {});
 
 **-> 代码示例：**
 
-![](../资源/sql_delete.png)
+![](./images/sql_delete.png)
 
 ## 3. 链接数据库封装
 
