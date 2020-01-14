@@ -326,3 +326,38 @@ app.listen(3000, () => {
 
 http://www.mongoosejs.net/
 
+```js
+const mongoose = require('mongoose');
+
+
+let defaultConfig = {
+    usr: "root", // 账号
+    pwd: "123",  // 密码
+    host: "127.0.0.1", // 域名
+    port: 27017, // 端口
+    db_name: "mongo" // 数据库名称
+}
+
+function getDBConnection(options = defaultConfig) {
+    // 拼接URI
+    const MONGODB_URI = `mongodb://${config.usr}:${config.pwd}@${config.host}:${config.port}/${config.db_name}`;
+    // 连接数据库
+    mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
+    // 连接成功
+    mongoose.connection.on('connected', function () {
+        console.log('Mongoose connection succuss');
+    });
+    // 连接失败
+    mongoose.connection.on('error', function (err) {
+        console.log('Mongoose connection error: ' + err);
+    });
+    // 连接断开
+    mongoose.connection.on('disconnected', function () {
+        console.log('Mongoose connection disconnected');
+    });
+    return mongoose.connection;
+}
+
+export default getDBConnection;
+```
+
