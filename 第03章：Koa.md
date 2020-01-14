@@ -91,7 +91,34 @@ const cors = require('koa2-cors');
 app.use(cors());
 ```
 
-# 五、处理路由
+# 五、处理静态资源
+
+中间件：<b style="color:red;text-decoration:underline;">koa-static</b> 
+
+**>> 下载：**
+
+```shell
+# NPM
+$ npm install koa-static
+# YARN
+$ yarn add koa-static
+```
+
+**>> 使用：**
+
+```js
+// 1. 引入
+const path = require('path');
+const static = require('koa-static');
+// 2. 使用
+app.use(static(
+    path.join(__dirname, "./www")
+));
+// 3. 浏览器访问
+// => http://localhost:3000/images/koa.jpeg
+```
+
+# 六、处理路由
 
 路由是由一个URI和一个特定的HTTP 方法（GET、POST 等）组成，涉及到应用如何响应客户端对某个网站节点的访问。通俗的讲 => <b style="color:gray;"><ins>路由就是根据不同的URL 地址，加载不同的页面实现不同的功能。</ins></b>  Koa 中，我们使用 <b style="color:red;text-decoration:underline;">koa-router</b> 实现路由配置。
 
@@ -236,36 +263,7 @@ router.post('/login', async (ctx) => {
 });
 ```
 
-[路由模块化配置 >>](https://www.jianshu.com/p/0b52bbbc6ecc)
-
-# 六、处理静态资源
-
-中间件：<b style="color:red;text-decoration:underline;">koa-static</b> 
-
-**>> 下载：**
-
-```shell
-# NPM
-$ npm install koa-static
-# YARN
-$ yarn add koa-static
-```
-
-**>> 使用：**
-
-```js
-// 1. 引入
-const path = require('path');
-const static = require('koa-static');
-// 2. 使用
-app.use(static(
-    path.join(__dirname, "./www")
-));
-// 3. 浏览器访问
-// => http://localhost:3000/images/koa.jpeg
-```
-
-# 七、完整代码
+# 七、模块化配置
 
 ```json
 "dependencies": {
@@ -277,43 +275,95 @@ app.use(static(
 }
 ```
 
+用户接口：./router/user.js
+
 ```js
-const Koa = require('koa');
-const cors = require('koa2-cors');
-const bodyParser = require('koa-bodyparser');
-const path = require('path');
+// => 导入路由模块
+const router = require('koa-router')();
+// => 处理路由
+router.post('/login', (ctx, next) => {
+    console.log(`「登录接口」 被调用！`)
+    ctx.body = {
+        code: 200,
+        message: "用户登录！"
+    };
+    next();
+});
+router.post('/register', (ctx, next) => {
+    console.log(`「注册接口」 被调用！`)
+    ctx.body = {
+        code: 200,
+        message: "用户注册！"
+    };
+    next();
+});
+// => 导出路由配置
+module.exports = router.routes();
+```
+
+订单接口：./router/orders.js
+
+```js
+// => 导入路由模块
+const router = require('koa-router')();
+// => 处理路由
+router.get('/', (ctx, next) => {
+    console.log(`「查询订单接口」 被调用！`)
+    ctx.body = {
+        code: 200,
+        message: "查询订单"
+    };
+    next();
+});
+router.get('/delete', (ctx, next) => {
+    console.log(`「删除订单接口」 被调用！`)
+    ctx.body = {
+        code: 200,
+        message: "删除订单"
+    };
+    next();
+});
+// => 导出路由配置
+module.exports = router.routes();
+```
+
+合并接口：./router/index.js
+
+```js
+const router = require('koa-router')();
+const user = require('./user');
+const orders = require('./orders');
+
+router.use('/user', user);
+router.use('/orders', orders);
+
+module.exports = router;
+```
+
+调用接口：app.js
+
+```js
+// => 导入模块
+const Koa = require('koa'); 
+const cors = require('koa2-cors'); 
+const bodyParser = require('koa-bodyparser'); 
+const path = require('path'); 
 const static = require('koa-static');
-const router = require('koa-router')(); // 注意：引入的方式
+const router = require('./router');
 const app = new Koa();
 
-router.get('/', (ctx, next) => {
-	ctx.body = "Hello koa!";
-})
-router.get('/info', (ctx, next) => {
-	let {query, querystring} = ctx.requeset;
-	ctx.body = {
-		query,
-		querystring
-	}
-	
-});
-router.post('/login', async (ctx) => {
-	console.log(ctx.request.body);
-	ctx.body = JSON.stringify({
-		code: 200,
-		message: "操作成功!"
-	})
-});
-
-
+// => 处理跨域
 app.use(cors());
+// => 解析POST参数
 app.use(bodyParser());
-app.use(router.routes());
+// => 处理路由
+app.use(router.routes()).use(router.allowedMethods());
+// => 处理静态资源
 app.use(static(
     path.join(__dirname, "./www")
 ))
-app.use(router.allowedMethods());
 
+// => 监听
 app.listen(3000, () => {
 	console.log('server running at http://localhost:3000');
 });
@@ -324,7 +374,11 @@ app.listen(3000, () => {
 
 # 八、访问数据库
 
-http://www.mongoosejs.net/
+[Mongoose >>](http://www.mongoosejs.net/)
+
+[MongoDB >>](https://github.com/lihongyao/mongoDB)
+
+访问数据库之前，首先创建数据库，然后在该数据库下创建对应的用户并设置权限。
 
 ```js
 const mongoose = require('mongoose');
