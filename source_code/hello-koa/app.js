@@ -7,6 +7,49 @@ const static = require('koa-static');
 const router = require('./router');
 const app = new Koa();
 
+const HeroModel = require('./models/heros');
+// => 存储数据
+let hero = new HeroModel({
+	name: "木子李",
+	age: 27,
+	tel: "17398888669",
+	gender: "男"
+});
+hero.save((err, res) => {
+	if(err) {
+		console.log(err);
+		return;
+	}
+	console.log(res);
+})
+
+// => 查询数据
+HeroModel.find((err, res) => {
+	if(err) {
+		console.log(err);
+		return;
+	}
+	console.log(res);
+});
+
+// => 修改数据
+HeroModel.updateOne({name: "木子李"}, {age: 30}, (err, res) => {
+	if(err) {
+		console.log(err);
+		return;
+	}
+	console.log("修改成功!");
+});
+
+// => 删除数据
+HeroModel.deleteOne({name: "木子李"}, (err, res) => {
+	if(err) {
+		console.log(err);
+		return;
+	}
+	console.log("删除成功!");
+})
+
 // => 处理跨域
 app.use(cors());
 // => 解析POST参数

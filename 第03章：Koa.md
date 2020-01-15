@@ -380,38 +380,135 @@ app.listen(3000, () => {
 
 访问数据库之前，首先创建数据库，然后在该数据库下创建对应的用户并设置权限。
 
+## 1. Schema
+
+数据库中的 Schema， 为数据库对象的集合。 schema 是 mongoose 里会用到的一种数据模式，
+可以理解为表结构的定义； 每个 schema 会映射到 mongodb 中的一个 collection， 它不具备
+操作数据库的能力。
+
 ```js
-const mongoose = require('mongoose');
-
-
-let defaultConfig = {
-    usr: "root", // 账号
-    pwd: "123",  // 密码
-    host: "127.0.0.1", // 域名
-    port: 27017, // 端口
-    db_name: "mongo" // 数据库名称
-}
-
-function getDBConnection(options = defaultConfig) {
-    // 拼接URI
-    const MONGODB_URI = `mongodb://${config.usr}:${config.pwd}@${config.host}:${config.port}/${config.db_name}`;
-    // 连接数据库
-    mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
-    // 连接成功
-    mongoose.connection.on('connected', function () {
-        console.log('Mongoose connection succuss');
-    });
-    // 连接失败
-    mongoose.connection.on('error', function (err) {
-        console.log('Mongoose connection error: ' + err);
-    });
-    // 连接断开
-    mongoose.connection.on('disconnected', function () {
-        console.log('Mongoose connection disconnected');
-    });
-    return mongoose.connection;
-}
-
-export default getDBConnection;
+const heroSchema = new mongoose.Schema({
+	name: string,
+	age: number
+}, {
+	collection: "heros"
+});
 ```
+
+## 2. Model
+
+```js
+const HeroModel = mongoose.model("HeroModel", heroSchema, "heros");
+```
+
+## 3. 代码示例
+
+**> 建立连接**
+
+```js
+// 文件位置：./db/index.js
+// => 导入模块
+const mongoose = require('mongoose');
+// => URI > mongodb://用户名:密码@主机:端口/数据库名称
+const MONGODB_URI = "mongodb://root:123@localhost:27017/mongo";
+// => 连接数据库
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true }, (err) => {
+	if (err) {
+		console.log('mongodb connect fail!');
+		return;
+	}
+	console.log("mongodb connect success!")
+});
+module.exports = mongoose;
+```
+
+**> 构建Model**
+
+```js
+// 文件位置：./models/hero.js
+const mongoose = require("../db");
+const heroSchema = new mongoose.Schema({
+	name: {
+		type: String,
+		required: true,
+		index: true,
+		unique: true
+	},
+	age: {
+		type: Number,
+		required: true,
+		min: 18,
+		max: 65
+	},
+	tel: {
+		type: String,
+		required: true
+	},
+	gender: {
+		type: String,
+		default: "保密"
+	}
+}, {
+	collection: "heros"
+});
+
+const Hero = mongoose.model("Hero", heroSchema, "heros");
+
+module.exports = Hero;
+```
+
+> 提示：你可以根据此模式构建多个Model
+
+**> 操作数据**
+
+```js
+// 文件位置：app.js
+const HeroModel = require('./models/heros');
+// => 存储数据
+let hero = new HeroModel({
+	name: "木子李",
+	age: 27,
+	tel: "17398888669",
+	gender: "男"
+});
+hero.save((err, res) => {
+	if(err) {
+		console.log(err);
+		return;
+	}
+	console.log(res);
+})
+
+// => 查询数据
+HeroModel.find((err, res) => {
+	if(err) {
+		console.log(err);
+		return;
+	}
+	console.log(res);
+});
+
+// => 修改数据
+HeroModel.updateOne({name: "木子李"}, {age: 30}, (err, res) => {
+	if(err) {
+		console.log(err);
+		return;
+	}
+	console.log("修改成功!");
+});
+
+// => 删除数据
+HeroModel.deleteOne({name: "木子李"}, (err, res) => {
+	if(err) {
+		console.log(err);
+		return;
+	}
+	console.log("删除成功!");
+})
+
+```
+
+
+
+
 
