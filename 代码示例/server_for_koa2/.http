@@ -1,0 +1,45 @@
+# 定义变量
+@url = http://localhost:3000/api
+@type = Content-Type: application/json
+
+
+# 用户登陆
+POST {{url}}/user/login HTTP/1.1
+{{type}}
+
+{
+    "username":"lihy",
+    "password":"456"
+}
+
+# 删除用户
+POST {{url}}/user/delete HTTP/1.1
+{{type}}
+
+{
+    "username":"admin"
+}
+
+#### 修改密码
+POST {{url}}/user/password HTTP/1.1
+{{type}}
+
+{
+    "username":"admin",
+    "password":"456"
+}
+
+### 查询用户
+GET {{url}}/user HTTP/1.1
+
+### 注册用户
+POST {{url}}/user/register HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "123"
+}
+
+
+
