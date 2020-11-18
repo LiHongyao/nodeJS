@@ -3,10 +3,29 @@
 简单的说 Node.js 就是运行在服务端的 JavaScript。
 
 - Node.js 是一个基于 Chrome V8 引擎的 JavaScript 运行环境。 
-- Node.js 使用了一个事件驱动、非阻塞式 I/O 的模型，使其轻量又高效。 
-- Node.js 的包管理器 npm，是全球最大的开源库生态系统
 
-> <https://github.com/nodejscn/node-api-cn>
+- Node.js 使用了一个事件驱动、非阻塞式 I/O 的模型，使其轻量又高效。 
+
+- Node.js 的包管理器 npm，是全球最大的开源库生态系统。
+
+- Node.js 主要用于编写服务器端应用。
+
+- 操作对象不同
+
+  | 前端 | DOM                   | -          |
+  | ---- | --------------------- | ---------- |
+  |      | BOM/DOM               | 浏览器对象 |
+  |      | XHMLHttpRequest/fetch | 网络通讯   |
+  | 后端 | os                    | 操作系统   |
+  |      | process               | 进程       |
+  |      | fs                    | 文件系统   |
+  |      | net                   | 网络通讯   |
+
+> 中文文档：http://nodejs.cn/api/
+>
+> 英文文档：https://nodejs.org/dist/latest/docs/api/
+>
+> 当前版本：https://github.com/nodejs/node/releases
 
 # 二、有什么用？
 
@@ -24,13 +43,7 @@ Node能用来操作系统底层，能够用来 <b><ins>创建服务器，构建�
 
 \5. 以后随时可以发展为全栈全端工程师
 
-# 四、最新版本
-
-最新版本：[2019-08-15, Version 12.8.1 (Current), @targos](https://github.com/nodejs/node/releases/tag/v12.8.1)（更新与2019.08.20）
-
-参考地址：<https://github.com/nodejs/node/releases>
-
-# 五、如何安装
+# 四、如何安装
 
 下载地址：<https://nodejs.org/zh-cn/>
 
@@ -38,15 +51,23 @@ Node能用来操作系统底层，能够用来 <b><ins>创建服务器，构建�
 
 如果提示 ”node 不是内部或外部命令“，你需将node的安装路径添加至环境变量中。
 
-# 六、如何使用
+# 五、如何使用
 
 \1. 创建文件，如：index.js
 
 \2. 在终端输入指令：`$ node indes.js`
 
-# 七、API
+实时调试
 
- <http://nodejs.cn/api/>
+```shell
+$ npm install nodemon -g
+```
+
+```shell
+$ nodemon xxx.ts
+```
+
+
 
 
 
