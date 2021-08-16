@@ -1,0 +1,9 @@
+node_modules/
+logs/
+run/
+
+package-lock.json
+yarn.lock
+
+.idea/
+.DS_Store
