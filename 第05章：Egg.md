@@ -1,3 +1,5 @@
+https://www.postman.com/downloads/
+
 # 一、概述
 
 中文官网：https://eggjs.org/zh-cn/
@@ -35,28 +37,34 @@ egg考虑到 企业级应用在追求规范和共建的同时，还需要思考�
 
 https://eggjs.org/zh-cn/intro/egg-and-koa.html
 
-# 三、入门概览（手动搭建egg脚手架）
+# 三、egg 入门概览
 
-## 1. 目录结构
+## 1. 项目搭建
 
-创建一个基本的项目目录
+创建项目：
+
+```shell
+$ mkdir egg-example && cd egg-example
+```
+
+然后创建一个基本的目录结构：
 
 ```ini
 .
-├── app # 应用相关代码
-    ├── controller # mvc中的v，逻辑控制层
+├── app
+    ├── controller # 控制器
         └── home.js
-    └── router.js  # 路由规则
+    └── router.js  # 路由
 ├── config         # 项目配置文件
     └── config.default.js
-└── package.json   # 注意：此文件通过 `yarn init -y` 命令自动创建
+└── package.json   # 注意：此文件通过 【yarn init -y】 命令自动创建
 ```
 
-
+> 详细结构请参考 [官方文档 >>](https://eggjs.org/zh-cn/basics/structure.html)
 
 ## 2. 安装依赖
 
-**# 创建package.json文件**
+**① 创建package.json文件**
 
 在项目中打开终端，输入如下指令：
 
@@ -64,7 +72,7 @@ https://eggjs.org/zh-cn/intro/egg-and-koa.html
 $ yarn init -y
 ```
 
-**# 安装egg相关模块**
+**② 安装相关模块**
 
 ```shell
 # 相关模块安装
@@ -72,13 +80,13 @@ $ yarn add egg
 $ yarn add egg-bin -D
 ```
 
-**# 创建忽略文件 .gitignore **
+**③ 创建忽略文件 .gitignore **
 
-在项目根目录创建 “.gitignore” 文件
+在项目根目录创建 <u>.gitignore</u> 文件
 
 ```shell
 # 创建忽略文件
-$ touch .gitignore # mac
+$ touch .gitignore
 ```
 
 然后根据需要键入忽略内容：
@@ -100,35 +108,29 @@ yarn.lock
 
 目录搭建好了，模块依赖安装好了，然后就是写代码运行了。
 
-对于代码编写，最基础和必要的就是路由层Router和业务控制层controller,所以这里的话，我们只需要定义这两层就可以了。
+对于代码编写，最基础和必要的就是 <u>路由层（Router）</u> 和 <u>业务控制层（Controller）</u>，所以这里的话，我们只需要定义这两层就可以了。
 
-**# 先定义controller业务控制层（因为路由层会使用到他）**
+**① 先定义Controller业务控制层（因为路由层会使用到他）**
 
 ```javascript
 // app/controller/home.js
+// 引入控制器
 const Controller = require("egg").Controller;
-
-class HomeController extends Controller {
+// 创建并导出一个继承于egg控制器的控制器
+module.exports = class _ extends Controller {
+  // 定义index方法，并设置响应数据
   async index() {
-    this.ctx.body = `Hello, egg.js!`;
+    this.ctx.body = 'Hello, egg.js!';
   }
 }
-
-module.exports = HomeController;
 ```
-
-> 代码解读：
->
-> 我们定义了一个自己的controller类，名为HomeController。他继承了egg-Controller基类。
->
-> 这个类中有个方法 `index`，此方法作用为向上下文内容写入了 “Hello, egg.js!” 字符串（如果此控制器被调用，那么就会向前端返回 “Hello, egg.js!” 字符串）。
 
 **# 再定义router路由层（这是直接面向客户端的，用户的请求都会直接到这里来）**
 
-- 这里是在app目录下直接写的一个文件router.js，而不是目录（当然，如果你的项目非常庞大，路由也可以分模块）
-- 路由文件代码其实比较简单，就是一个函数，这个函数会接收一个app参数对象，app中包含了我们要使用的router对象和控制器对象
-- 通过app拿到了router对象后，我们就可以定义处理各种请求的路由了
-- 通过app拿到了controller对象后，我们就可以在路由回调函数里任意的调用我们想使用的controller了
+- 在app目录下创建一个<u>router.js</u>文件。
+- 路由文件代码其实比较简单，就是一个<u>函数</u>，这个函数会接收一个app参数对象，app中包含了我们要使用的router对象和控制器对象。
+- 通过app拿到了router对象后，我们就可以定义处理各种请求的路由了。
+- 通过app拿到了controller对象后，我们就可以在路由回调函数里任意的调用我们想使用的controller了。
 
 ```js
 // app/router.js
@@ -142,13 +144,14 @@ module.exports = (app) => {
 
 ## 4. 配置Cookie 安全字符串
 
-当编写了路由和controller后，剩下的就是配置cookie安全字符串了，如下（必须配置，否则就会报错）：
+当编写了路由和controller后，接下来配置cookie安全字符串（必须配置，否则就会报错）：
 
 ```js
-module.exports = (appInfo) => {
+// config/config.default.js
+module.exports = app => {
   const config = (exports = {});
   // 配置Cookie安全字符串
-  config.keys = appInfo.name + "_1628828777491_2977";
+  config.keys = app.name + "_1628828777491_2977";
   return {
     ...config,
   };
@@ -159,7 +162,7 @@ module.exports = (appInfo) => {
 
 ## 5. 启动项目
 
-**# 基本说明**
+**① 基本说明**
 
 a. 前面我们安装依赖模块时，不仅安装了egg还安装了egg-bin，这个egg-bin的目的就是用来启动项目的。
 
@@ -167,7 +170,7 @@ b. 不过，由于我们安装的是本地项目模块而不是全局模块，�
 
 c. 写入进去之后，通过 `npm run 命令名` 进行启动。
 
-**# 写入脚本**
+**② 写入脚本**
 
 ```json
 {
@@ -177,35 +180,35 @@ c. 写入进去之后，通过 `npm run 命令名` 进行启动。
 }
 ```
 
-**# 执行命令**
+**③ 执行命令**
 
 ```shell
 $ yarn run dev
 ```
 
-**# 运行效果**
+**④ 运行效果**
 
 ![](./images/hello_egg.png)
 
 ## 6. 配置静态资源映射
 
-**# 基本说明**
+**① 基本说明**
 
 a. 以前我们写 express 时，是需要自己手动去配置的。当然，使用express脚手架例外。
 
-b. 现在的话，Egg 内置了 static 插件，插件默认映射 */public/  -> app/public/* 目录
+b. 现在的话，Egg 内置了 static 插件，插件默认映射 *<u>/public/  -> app/public/</u>* 目录。
 
-c. 所以，我们只需要要把静态资源都放到 app/public 目录即可完成自动映射
+c. 所以，我们只需要把静态资源都放到 <u>app/public</u> 目录即可完成自动映射。
 
-**# 使用示例** 
+**② 使用示例** 
 
 ![](./images/public_static.png)
 
-然后在浏览器输入 “http://127.0.0.1:7001/public/images/egg.png” 就可以访问了。
+然后在浏览器输入 【http://127.0.0.1:7001/public/images/egg.png】 就可以访问了。
 
 > 注意：
 >
-> 1. 以前我们使用express时，一般也是写的 **public** 目录，但是访问时默认是不需要加上此目录名的，如：http://127.0.0.1:7001/images/egg.png  即可，但是在egg中，默认是需要加上此目录名的（当然，实际上你也可以自己在 *config.default.js* 文件中进行配置，如果不想加的话），具体配置方式如下：
+> 1. 以前我们使用express时，一般也是写的 **public** 目录，但是访问时默认是不需要加上此目录名的，如直接访问 【http://127.0.0.1:7001/images/egg.png  】即可，但是在egg中，默认是需要加上此目录名的（当然，实际上你也可以自己在 *<u>config.default.js</u>* 文件中进行配置，如果不想加的话），具体配置方式如下：
 >
 >    ```js
 >    config.static = {
@@ -213,11 +216,11 @@ c. 所以，我们只需要要把静态资源都放到 app/public 目录即可�
 >    };
 >    ```
 >
-> 2. 线上环境建议部署到 CDN，无需该插件
+> 2. 线上环境建议部署到 CDN，无需该插件。
 
-## 7. 模板渲染
+## 7. 模板渲染（了解）
 
-**# 基本说明**
+**① 基本说明**
 
 a. 当我们开发时，如果不使用前后端分离开发（即只提供接口形式的开发），或者需要服务端渲染时，这时我们就需要模板来渲染页面了。
 
@@ -230,7 +233,7 @@ b. 在egg中使用模板渲染的流程如下：
 - 定义 **controller** 获取数据渲染模板
 - 定义 **router** 处理前端请求返回渲染好的模板文件
 
-**# 使用示例（这里以 [Nunjucks](https://mozilla.github.io/nunjucks/) 模板为例）**
+**② 使用示例（这里以 [Nunjucks](https://mozilla.github.io/nunjucks/) 模板为例）**
 
 1）安装模块插件到本地
 
@@ -338,7 +341,7 @@ module.exports = app => {
 
 ![](./images/news.png)
 
-**# 注意：**
+注意：
 
 > - router 里面获取具体的controller时，如： `controller.news.list` 。
 > - 其中news是文件名（当我们在app/controller下创建了相关的js文件后，如果这个文件有相关导出，那么他就会自动的注入到controller对象上，可以供我们进行调用，如controller.news.list）
@@ -346,74 +349,52 @@ module.exports = app => {
 
 ## 8. 编写service
 
-**# 基本说明**
+**① 基本说明**
 
 在实际应用中，Controller 一般不会自己产出数据，也不会包含复杂的逻辑，复杂的过程应抽象为业务逻辑层 [Service](https://eggjs.org/zh-cn/basics/service.html)。（你可以认为service是提供数据或对数据做复杂处理的）。
 
-**# service 编写流程（和定义一个自己的controller非常像）**
+**② service 编写流程**
 
-a. 在app/service目录下新建一个js文件
+a. 在 <u>app/service</u> 目录下新建一个js文件。
 
-b. 文件中先引入egg模块，并从模块里面获取到Service基类对象
+b. 文件中先引入egg模块，并从模块里面获取到 <u>Service</u> 基类对象。
 
-c. 接着定义自己的service类，此类需要继承Service基类
+c. 接着定义自己的service类，此类需要继承Service基类。
 
-d. 然后在此类中定义相关方法，此方法会返回相关的数据供controller进行使用
+d. 然后在此类中定义相关方法，此方法会返回相关的数据供controller进行使用。
 
-e. 在controller中使用service时，需要通过this.ctx.service拿到相关service和数据
+e. 在controller中使用service时，需要通过 <u>this.ctx.service</u> 拿到相关service和数据。
 
-**# service 编写示例**
+**③ service 编写示例**
 
 ```js
-// app/service/news.js
+// app/service/home.js
 const Service = require("egg").Service;
 
-class NewsService extends Service {
-  async list() {
+module.exports = class _ extends Service {
+  async info() {
     return {
-      list: [
-        {
-          id: 1,
-          title: "this is news 1",
-          url: "/news/1",
-        },
-        {
-          id: 2,
-          title: "this is news 2",
-          url: "/news/2",
-        },
-      ],
-    };
+      name: 'Muzili',
+      job: '全栈工程师',
+      address: '成都市高新区'
+    }
   }
 }
-
-module.exports = NewsService;
 ```
 
-**# 在controller中使用service**
+**④ 在controller中使用service**
 
 ```js
-// app/controller/news.js
+// app/controller/home.js
 const Controller = require("egg").Controller;
-
-class NewsController extends Controller {
-  async list() {
-    // 调用serview获取数据
-    const dataList = await this.ctx.service.news.list();
-    await this.ctx.render("news/list.tpl", dataList);
+module.exports = class _ extends Controller {
+  async index() {
+    this.ctx.body = await this.ctx.service.home.info();
   }
 }
-
-module.exports = NewsController;
 ```
 
-**# 效果**
-
-效果和之前的做法是一样的。
-
-![](./images/news.png)
-
-**# 数据mock**
+**⑥ 数据mock**
 
 我上面是在service中直接写的静态json数据，实际上在我们的开发中，我们可以从数据库里面获取数据，也可以通过第三方接口获取数据。
 
@@ -428,33 +409,33 @@ $ yarn add mockjs
 然后在service中使用mock生成测试数据：
 
 ```js
-// app/service/news.js
+// app/service/home.js
 const Service = require("egg").Service;
 const Mock = require("mockjs");
-class NewsService extends Service {
-  async list() {
+
+module.exports = class _ extends Service {
+  async info() {
     return Mock.mock({
       "list|5": [
         {
           id: "@guid",
           title: "@ctitle",
-          url: "/",
+          url: "@image(300x300, @color, #FFF, Mock.js)",
+          time: '@date("yyyy-MM-dd")', // 新增time字段
         },
       ],
     });
   }
 }
-
-module.exports = NewsService;
 ```
 
 > 解读：
 >
 > 上述示例中，我们通过mock生成了5条随机数据，关于mock配置，可以 [参考这里 >>](http://mockjs.com/)
 
-## 9. 编写扩展
+## 9. 编写扩展（了解）
 
-**# 基本说明**
+**① 基本说明**
 
 a. 如果我们想往当前模块里面添加某些扩展功能，那么我们就可以使用View 插件支持的 Helper 来实现。
 
@@ -462,7 +443,7 @@ b. 比如我们想在view里面使用一个功能：将 “2020-1-7” 转换成
 
 c. 框架提供了一种快速扩展的方式，只需在 **app/extend** 目录下提供扩展脚本即可。
 
-**# 扩展编写示例**
+**② 扩展编写示例**
 
 ```js
 // app/extend/helper.js
@@ -470,7 +451,7 @@ c. 框架提供了一种快速扩展的方式，只需在 **app/extend** 目录�
 exports.relativeTime = (time) => time.replace("-", "年").replace("-", "月") + "日";
 ```
 
-**# 在view模板中使用扩展的示例**
+**③ 在view模板中使用扩展的示例**
 
 这里我现在news的service中添加了 `time` 字段：
 
@@ -522,26 +503,26 @@ module.exports = NewsService;
 
 ## 10. 编写 Middleware中间件
 
-**# 基本说明**
+**① 基本说明**
 
 中间件在我们的开发中很常用，比如任何请求进来时进行常规的token校验，字段过滤，甚至是反爬虫机制等，这些都可以也应该使用中间件。
 
-**# 编写中间件流程**
+**② 编写中间件流程**
 
-1）在 **config/config.default.js** 中做中间件配置（也可以在这里配置此中间件的具体参数）
+1）在 **<u>config/config.default.js</u>** 中做中间件配置（也可以在这里配置此中间件的具体参数）。
 
-2）在 **app/middleware** 目录下创建一个中间件js文件，编写具体的中间件函数代码
+2）在 **<u>app/middleware</u>** 目录下创建一个中间件js文件，编写具体的中间件函数代码。
 
 两步完成后，默认中间件会在每次请求来时都处理下（即全局中间件）
 
-**# 编写中间件示例**
+**③ 编写中间件示例**
 
-1）在 config/config.default.js 中做中间件配置
+1）在 <u>config/config.default.js</u> 中做中间件配置
 
 ```js
 // 中间件配置
 config.middleware = [
-  "logmid", // 日志中间件
+  "logmid", 
 ];
 // 传入logmid中间件的options参数
 config.logmid = {
@@ -549,7 +530,7 @@ config.logmid = {
 };
 ```
 
-2）在app/middleware目录下创建一个中间件js文件，编写具体的中间件函数代码
+2）在 <u>app/middleware</u> 目录下创建一个中间件js文件，编写具体的中间件函数代码
 
 ```js
 // app/middleware/logmid.js
@@ -567,7 +548,7 @@ module.exports = (options, app) => {
 };
 ```
 
-**# 效果**
+**④ 效果**
 
 由于默认中间件会在每次请求来时都处理下（即全局中间件），所以效果如下：
 
@@ -577,9 +558,9 @@ module.exports = (options, app) => {
 -----------------------------------
 ```
 
-**# 注意**
+**注意**
 
-中间件函数中的option就是我们在配置文件里面写的（当然中间件名字需要对的上）
+中间件函数中的 <u>option</u> 就是我们在配置文件里面写的（当然中间件名字需要对的上）
 
 ```js
 // 传入logmid中间件的options参数
@@ -596,9 +577,9 @@ config.logmid = {
 - 应用/插件/框架都可以配置自己的配置文件，框架将按顺序合并加载。
 - 具体合并逻辑可参见 [配置文件](https://eggjs.org/zh-cn/basics/config.html#配置加载顺序)。
 
-**# 实例说明**
+**① 实例说明**
 
-1）先在默认配置里面给logmid中间件配置对象添加参数
+1）先在默认配置（<u>config.default.js</u>）里面给logmid中间件配置对象添加参数
 
 ```js
 // 传入logmid中间件的options参数
@@ -629,11 +610,11 @@ module.exports = (appInfo) => {
 3）最后在service中打印此配置最终值
 
 ```js
-// app/service/news.js
+// app/service/home.js
 const Service = require("egg").Service;
 const Mock = require("mockjs");
-class NewsService extends Service {
-  async list() {
+module.exports = class _ extends Service {
+  async info() {
     // 打印中间件配置值
     console.log(this.config.logmid);
     return Mock.mock({
@@ -641,18 +622,16 @@ class NewsService extends Service {
         {
           id: "@guid",
           title: "@ctitle",
-          url: "/",
+          url: "@image(300x300, @color, #FFF, Mock.js)",
           time: '@date("yyyy-MM-dd")', // 新增time字段
         },
       ],
     });
   }
-}
-
-module.exports = NewsService;
+};
 ```
 
-**# 合并结果**
+**② 合并结果**
 
 ```
 { desc: '日志信息（开发环境）：', name: 'Li-HONGYAO' }
@@ -666,7 +645,7 @@ module.exports = NewsService;
 
 ## 12. 编写定时任务
 
-**# 基本说明**
+**① 基本说明**
 
 虽然我们通过框架开发的 HTTP Server 是请求响应模型的，但是仍然还会有许多场景需要执行一些定时任务，例如：
 1）定时上报应用状态。
@@ -674,17 +653,17 @@ module.exports = NewsService;
 3）定时进行文件切割、临时文件删除。
 框架提供了一套机制来让定时任务的编写和维护更加优雅。
 
-**# 编写流程**
+**② 编写流程**
 
-所有的定时任务都统一存放在 **app/schedule** 目录下，每一个文件都是一个独立的定时任务，可以配置定时任务的属性和要执行的方法。
+所有的定时任务都统一存放在 **<u>app/schedule</u>** 目录下，每一个文件都是一个独立的定时任务，可以配置定时任务的属性和要执行的方法。
 编写任务js文件时，步骤如下：
-1）从egg中导入Subscription基类对象
-2）接着开始创建class，class继承上面得到的Subscription基类对象
-3）class里面先写个静态的schedule方法（方法名不能变），设置定时任务的执行间隔等配置
-4）class里面再写个静态的subscription方法（方法名不能变），表示执行的具体任务
-5）如果有许多定时任务，那么就写多个js文件
+1）从egg中导入<u>Subscription</u>基类对象。
+2）接着开始创建class，class继承上面得到的Subscription基类对象。
+3）class里面先写个静态的schedule方法（方法名不能变），设置定时任务的执行间隔等配置。
+4）class里面再写个静态的subscription方法（方法名不能变），表示执行的具体任务。
+5）如果有许多定时任务，那么就写多个js文件。
 
-**# 编写示例**
+**③ 编写示例**
 
 ```js
 // app/schedule/task1.js
@@ -722,7 +701,7 @@ module.exports = Task1;
 任务1执行：下午12:14:14
 ```
 
-**# 另一种写法（简写）**
+**④ 另一种写法（简写）**
 
 ```js
 // app/schedule/task2.js
@@ -737,13 +716,13 @@ module.exports = {
 };
 ```
 
-**# 间隔时间单位**
+**⑤ 间隔时间单位**
 
 时（`h`）/ 分（`m`）/ 秒（`s`）
 
 ## 13. 启动自定义 
 
-**# 基本说明**
+**① 基本说明**
 
 我们常常需要**在应用启动期间进行一些初始化工作**，等初始化完成后应用才可以启动成功，并开始对外提供服务。
 
@@ -759,13 +738,13 @@ module.exports = {
 - 应用启动完成（`serverDidReady`）
 - 应用即将关闭（`beforeClose`）
 
-**# 编写流程**
+**② 编写流程**
 
 1）在项目根目录下创建app.js，然后写此Boot 类
 2）在此Boot 类中定义各个声明周期函数
 3）在每个声明周期函数中进行各种操作
 
-**# 编写示例**
+**③ 编写示例**
 
 ```js
 // app.js
@@ -824,13 +803,13 @@ __http / https server 已启动，开始接受外部请求__
 
 ## 14. Agent（代理进程）
 
-**# 基本说明**
+**① 基本说明**
 
 我们发现有些工作其实不需要每个 Worker 都去做，如果都做，一来是浪费资源，更重要的是可能会导致多进程间资源访问冲突。
 所以，对于这一类后台运行的逻辑，我们希望将它们放到一个单独的进程上去执行，这个进程就叫 Agent Worker，简称 Agent。
 Agent 好比是 主进程给其他 Worker 请的一个『秘书』，它不对外提供服务，只给 App Worker 打工，专门处理一些公共事务。
 
-**# Agent 用法**
+**② Agent 用法**
 
 你可以在应用或插件根目录下的 **agent.js** 中实现你自己的逻辑（和 **启动自定义** 用法类似，只是入口参数时 **agent** 对象）
 
@@ -884,55 +863,67 @@ module.exports = AppBootHook;
 
 ## 16. 处理跨域
 
-```
-步骤一：
-# 下载 egg-cors 包
-npm i egg-cors --save
+**① 安装依赖**
 
-步骤二：
-# 在plugin.js中设置开启cors 
-exports.cors = {
-  enable: true,
-  package: 'egg-cors',
+```shell
+$ yarn add egg-cors
+```
+
+**② 在plugin.js中设置开启cors **
+
+```js
+module.exports = {
+  cors: {
+    enable: true,
+    package: "egg-cors",
+  },
 };
 
-步骤三：
-# 在config.{env}.js中配置，注意配置覆盖的问题
+```
+
+**③  在 <u>config.{env}.js</u> 中配置，注意配置覆盖的问题**
+
+```js
+// 安全性配置
 config.security = {
+  // 支持post
   csrf: {
     enable: false,
-    ignoreJSON: true
+    ignoreJSON: true,
   },
-  domainWhiteList: ['*']
+  domainWhiteList: [],
 };
 
+// 处理跨域
 config.cors = {
-  origin:'*',
-  allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH'
+  origin: "*",
+  allowMethods: "GET,HEAD,PUT,POST,DELETE,PATCH",
 };
 ```
 
 ## 17. apiDoc
 
-**# 安装依赖**
+**① 安装依赖**
 
 ```shell
 $ yarn add apidoc
 ```
 
-**# 在package.json 文件中配置 apidoc**
+**② 在package.json 文件中配置 apidoc**
 
 ```json
 "apidoc": {
-    "title": "文档标题",
-    "url": "http://192.168.101.31:7002",
-    "template": {
-      "forceLanguage": "zh_cn"
-    }
+  "name": "Api-documents",
+  "description": "Life is brief, and then you die, you know?",
+  "title": "ApiDoc 文档示例",
+  "url": "http://192.168.0.13:7001",
+  "template": {
+    "forceLanguage": "zh_cn"
   }
+},
 ```
 
-**# 配置脚本**
+**③ 配置脚本**
 
 ```js
 "docs": "npx apidoc -i ./app/controller/ -o app/public/docs",
@@ -940,76 +931,66 @@ $ yarn add apidoc
 
 > 解读：
 >
-> 根据 controller文件中的模板注释生成接口文档放置在 app/public/docs 目录下。
+> 根据 controller文件中的模板注释生成接口文档放置在 <u>app/public/docs</u> 目录下。
 
-**# 模板注释示例**
+**④ 模板注释示例**
 
-我们在 home 控制器中写一个登录接口来测试一下：
+我们在 <u>user</u> 控制器中写一个登录接口来测试一下：
 
 ```js
+// app/controller/user.js
+
 const Controller = require("egg").Controller;
-
-class HomeController extends Controller {
-  async index() {
-    this.ctx.body = `Hello, egg.js!`;
-  }
-  
+module.exports = class _ extends Controller {
   /**
-   * @api {POST} /user/login 用户登录
-   * @apiDescription 用户登录接口 /user/login
-   * @apiVersion 1.0.0
+   * @api {POST} /user/login 登录
    * @apiName login
-   * @apiGroup 用户相关接口
-   * @apiParam {String} username 用户名
+   * @apiGroup 用户相关
+   * @apiVersion 1.0.0
+   * @apiParam {String} username 登录账号
    * @apiParam {String} password 登录密码
-   * @apiParamExample {json} 入参示例:
-   * {
-   *   "username": "admin",
-   *   "password": "123",
-   * }
-   * @apiSuccess {Object} data 消息体，请参照后台给的文档
-   * @apiSuccess {Number} code 请求状态 0 请求成功
-   * @apiSuccess {String} msg 错误消息
+   *       
    */
-
   async login() {
+    // 获取参数
     const { username, password } = this.ctx.request.body;
-    if (username === "admin" && password === "123") {
+    // 逻辑判断（理论上这一部分代码应该抽离到service中去）
+    if (!username || !password) {
       this.ctx.body = {
-        status: 200,
+        code: -10,
+        message: "请填写用户名或密码",
+      };
+    } else if (username === "admin" && password === "123") {
+      this.ctx.body = {
+        code: 0,
         data: {
-          token: 1,
           name: "Li-HONGYAO",
+          job: "全栈工程师",
+          address: "成都市高新区",
         },
-        msg: "login success",
+        message: "登录成功",
       };
     } else {
       this.ctx.body = {
-        status: 200,
-        data: null,
-        msg: "login fail",
+        code: -10,
+        message: "账号或密码错误",
       };
     }
   }
-}
-
-module.exports = HomeController;
-
+};
 ```
 
 别忘记在 **router.js** 中设置该路由：
 
 ```js
- router.post("/user/login", controller.home.login);
+ router.post("/user/login", controller.user.login);
 ```
 
-**# 执行指令，生成doc**
+**⑤ 执行指令，生成doc**
 
 ```shell
 $ yarn run docs
 yarn run v1.22.10
-$ npx apidoc -i ./app/controller/ -o app/public/docs
-Done in 1.54s.
 ```
 
 此时，将会在 **app/public/docs** 中看到生成的文档文件
@@ -1312,7 +1293,50 @@ class Schedule extends Subscription {
 
 比如，要为开发流程增加集成测试环境 SIT。将 EGG_SERVER_ENV 设置成 sit（并建议设置 NODE_ENV = production），启动时会加载 **config/config.sit.js**，运行环境变量 **app.config.env** 会被设置成 **sit**。
 
+# 五、连接数据库
 
+## 1. MongoDB
+
+**① 安装依赖**
+
+```shell
+$ yarn add egg-mongoose 
+```
+
+**② 配置 <u>config/plugin.js</u> 和 <u>config.default.js</u>**
+
+```js
+// config/plugin.js
+module.exports = {
+  ...
+  mongoose: {
+    enable: true,
+    package: 'egg-mongoose'
+  }
+};
+
+```
+
+```js
+// config.default.js
+module.exports = (appInfo) => {
+  const config = (exports = {});
+
+  // mongoose
+  config.mongoose = {
+    url: 'mongodb://127.0.0.1:27107',
+    options: {
+      user: '', 
+      pass: '',
+      dbName: ''
+    }
+  }
+
+  return {
+    ...config,
+  };
+};
+```
 
 
 
