@@ -931,7 +931,7 @@ $ yarn add apidoc
 
 > 解读：
 >
-> 根据 controller文件中的模板注释生成接口文档放置在 <u>app/public/docs</u> 目录下。
+> 根据 controller 文件中的模板注释生成接口文档放置在 <u>app/public/docs</u> 目录下。
 
 **④ 模板注释示例**
 
@@ -995,7 +995,7 @@ yarn run v1.22.10
 
 此时，将会在 **app/public/docs** 中看到生成的文档文件
 
-**# 访问接口文档**
+**⑥ 访问接口文档**
 
 浏览器键入：http://127.0.0.1:7001/docs/index.html
 
@@ -1030,18 +1030,18 @@ https://eggjs.org/zh-cn/basics/structure.html
 
 基本说明（10个对象）
 
-- 从koa继承而来的四个对象：Application, Context, Request, Response
-- 框架扩展的六个对象：Controller, Service, Helper, Config, Logger，[Subscription](https://eggjs.org/zh-cn/basics/objects.html#subscription)
+- 从koa继承而来的四个对象：**<u>Application</u>**, **<u>Context</u>**, **<u>Request</u>**, **<u>Response</u>**
+- 框架扩展的六个对象：**<u>Controller</u>**, **<u>Service</u>**, **<u>Helper</u>**, **<u>Config</u>**, **<u>Logger</u>**，[**<u>Subscription</u>**](https://eggjs.org/zh-cn/basics/objects.html#subscription)
 
 ### 2.1. Application
 
-**# 说明**
+**① 说明**
 
-1）Application 是全局应用对象，在一个应用中，只会实例化一个。
-2）它继承自 Koa.Application，在它上面我们可以挂载一些全局的方法和对象。
+1）<u>Application</u> 是全局应用对象，在一个应用中，只会实例化一个。
+2）它继承自 <u>Koa.Application</u>，在它上面我们可以挂载一些全局的方法和对象。
 3）我们可以轻松的在插件或者应用中扩展 Application 对象。
 
-**# Application 的使用**
+**② Application 的使用**
 
 由于几乎所有被框架 [Loader](https://eggjs.org/zh-cn/advanced/loader.html) 加载的文件（Controller，Service，Schedule 等），都可以 export 一个函数，这个函数会被 Loader 调用，并使用 app 作为参数。Application 对象几乎可以在编写应用时的任何一个地方获取到同时设置其值。下面说下常见的做法：
 
@@ -1060,18 +1060,18 @@ class AppBootHook {
 
 2）获取/修改Application 的值
 
-- 在继承于 Controller, Service 基类的实例中，可以通过 **this.app** 访问到 Application 对象
-- 如果当前位置能访问到**ctx**对象，那么也可以通过 **this.ctx.app.属性名** 访问或修改
+- 在继承于 Controller, Service 基类的实例中，可以通过 **this.app** 访问到 Application 对象。
+- 如果当前位置能访问到**ctx**对象，那么也可以通过 **this.ctx.app.属性名** 访问或修改。
 
 ### 2.2. Context - 请求上下文
 
-**# 说明**
+**① 说明**
 
-1）Context 是一个**请求级别的对象**，继承自 Koa.Context。
-2）在每一次收到用户请求时，框架会实例化一个 Context 对象，这个对象封装了这次用户请求的信息，并提供了许多便捷的方法来获取请求参数或者设置响应信息。
+1）<u>Context</u> 是一个**请求级别的对象**，继承自 <u>Koa.Context</u>。
+2）在每一次收到用户请求时，框架会实例化一个 Context 对象，这个对象封装了这次用户请求的信息，并<u>提供</u>了许多便捷的<u>方法来 **获取请求参数** 或者 **设置响应信息**。</u>
 3）框架会将所有的 Service 挂载到 Context 实例上，一些插件也会将一些其他的方法和对象挂载到它上面（egg-sequelize 会将所有的 model 挂载在 Context 上）。
 
-**# context 的使用**
+**② context 的使用**
 
 最常见的 Context 实例获取方式是在 [Middleware](https://eggjs.org/zh-cn/basics/middleware.html), [Controller](https://eggjs.org/zh-cn/basics/controller.html) 以及 [Service](https://eggjs.org/zh-cn/basics/service.html) 中。
 
@@ -1088,19 +1088,19 @@ class AppBootHook {
   }
   ```
 
-**# 非用户请求的场景下我们需要访问 service / model 等 Context 实例上的对象**
+**③ 非用户请求的场景下我们需要访问 service / model 等 Context 实例上的对象**
 
-除了在请求时可以获取 **Context** 实例之外，在有些非用户请求的场景下我们需要访问 **service / model ** 等 Context 实例上的对象，我们可以通过 *Application.createAnonymousContext()* 方法创建一个匿名 Context 实例：
+除了在请求时可以获取 **Context** 实例之外，在有些非用户请求的场景下我们需要访问 **service / model ** 等 Context 实例上的对象，我们可以通过 **<u>`Application.createAnonymousContext()`</u>** 方法创建一个匿名 Context 实例：
 
 ### 2.3. Request & Response
 
-**# 基本说明**
+**① 基本说明**
 
-1）**Request** 是一个**请求级别的对象**，继承自 [Koa.Request](http://koajs.com/#request)。封装了 Node.js 原生的 HTTP Request 对象，提供了一系列辅助方法获取 HTTP 请求常用参数。
+1）**<u>Request</u>** 是一个**请求级别的对象**，继承自 [Koa.Request](http://koajs.com/#request)。封装了 Node.js 原生的 HTTP Request 对象，提供了一系列辅助方法获取 HTTP 请求常用参数。
 
-2）**Response** 是一个**请求级别的对象**，继承自 [Koa.Response](http://koajs.com/#response)。封装了 Node.js 原生的 HTTP Response 对象，提供了一系列辅助方法设置 HTTP 响应。
+2）**<u>Response</u>** 是一个**请求级别的对象**，继承自 [Koa.Response](http://koajs.com/#response)。封装了 Node.js 原生的 HTTP Response 对象，提供了一系列辅助方法设置 HTTP 响应。
 
-**# 使用方法**
+**② 使用方法**
 
 可以在 Context 的实例上获取到当前请求的 Request(*ctx.request*) 和 Response(*ctx.response*) 实例。
 
