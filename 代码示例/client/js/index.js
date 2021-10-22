@@ -1,5 +1,5 @@
 function get() {
-    fetch("http://127.0.0.1:8081/heros?name=吕布", {
+    fetch("http://127.0.0.1:8686/heros?name=吕布", {
         method: "GET"
     })
     .then(response => response.json())
@@ -14,7 +14,7 @@ function post() {
     // 1. 创建请求对象
     let xhr = new XMLHttpRequest();
     // 2. 配置请求
-    xhr.open("POST", "http://127.0.0.1:8081/user/login", true);
+    xhr.open("POST", "http://127.0.0.1:8686/user/login", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.responseType = "json";
     // 3. 发送请求
