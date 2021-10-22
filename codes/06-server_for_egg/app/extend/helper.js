@@ -1,11 +1,11 @@
 /*
  * @Author: Lee
- * @Date: 2021-08-16 11:05:58
+ * @Date: 2021-10-22 22:11:21
  * @LastEditors: Lee
- * @LastEditTime: 2021-10-22 17:03:04
+ * @LastEditTime: 2021-10-22 22:12:23
  */
 
-// app/extend/helper.js
 
-exports.relativeTime = (time) =>
-  time.replace("-", "年").replace("-", "月") + "日";
+// 逆序字符串
+exports.reverse = s => s.split("").reverse().join('');
+

@@ -37,7 +37,9 @@ egg考虑到 企业级应用在追求规范和共建的同时，还需要思考�
 
 https://eggjs.org/zh-cn/intro/egg-and-koa.html
 
-# 三、初体验
+# 三、初体验（逐步搭建）
+
+[参考地址 >>](https://eggjs.org/zh-cn/intro/quickstart.html#%E9%80%90%E6%AD%A5%E6%90%AD%E5%BB%BA)
 
 ## 1. 项目搭建
 
@@ -52,80 +54,64 @@ $ mkdir egg-example && cd egg-example
 ```ini
 .
 ├── app
-    ├── controller # 控制器
+    ├── controller            # 控制器/解析用户的输入，处理后返回相应的结果
+        └── home.js        
+    ├── service               # 编写业务逻辑层
         └── home.js
-    └── router.js  # 路由
-├── config         # 项目配置文件
-    └── config.default.js
-└── package.json   # 注意：此文件通过 【yarn init -y】 命令自动创建
+    ├── public                # 静态资源
+    └── router.js             # 用于配置 URL 路由规则
+├── config        
+    ├── config.default.js     # 配置文件
+    └── plugin.js   					# 配置需要加载的插件
+└── app.js              			# 自定义启动时的初始化工作
 ```
 
 > 详细结构请参考 [官方文档 >>](https://eggjs.org/zh-cn/basics/structure.html)
 
 ## 2. 安装依赖
 
-**① 创建package.json文件**
-
-在项目中打开终端，输入如下指令：
-
 ```shell
+#1 创建package.json文件
 $ yarn init -y
-```
-
-**② 安装相关模块**
-
-```shell
-# 相关模块安装
-$ yarn add egg
+#2 安装模块
+$ yarn add egg mockjs
 $ yarn add egg-bin -D
-```
-
-**③ 创建忽略文件 .gitignore **
-
-在项目根目录创建 <u>.gitignore</u> 文件
-
-```shell
-# 创建忽略文件
+#3 根目录创建 .gitignore 
 $ touch .gitignore
 ```
 
-然后根据需要键入忽略内容：
+> **<u>.gitignore</u>** 文件内容如下：
 
 ```js
-// .gitignore
-node_modules/
-logs/
-run/
+node_modules
+logs
+run
 
 package-lock.json
 yarn.lock
 
-.idea/
+.idea
 .DS_Store
 ```
 
-## 3. 编写Controller和Router代码
+## 3. 编写Controller和Router
 
-目录搭建好了，模块依赖安装好了，然后就是写代码运行了。
+准备工作做好之后，接下来就是写代码运行了。
 
-对于代码编写，最基础和必要的就是 <u>路由层（Router）</u> 和 <u>业务控制层（Controller）</u>，所以这里的话，我们只需要定义这两层就可以了。
+代码编写最基础和必要的就是 <u>路由层（Router）</u> 和 <u>业务控制层（Controller）</u>，所以这里的话，我们只需要定义这两层就可以了。
 
 **① 先定义Controller业务控制层（因为路由层会使用到他）**
 
 ```javascript
 // app/controller/home.js
-// 引入控制器
-const Controller = require("egg").Controller;
-// 创建并导出一个继承于egg控制器的控制器
-module.exports = class _ extends Controller {
-  // 定义index方法，并设置响应数据
+module.exports = class _ extends require("egg").Controller {
   async index() {
-    this.ctx.body = 'Hello, egg.js!';
+    this.ctx.body = "Hello, egg.js!";
   }
-}
+};
 ```
 
-**# 再定义router路由层（这是直接面向客户端的，用户的请求都会直接到这里来）**
+**② 再定义router路由层（这是直接面向客户端的，用户的请求都会直接到这里来）**
 
 - 在app目录下创建一个<u>router.js</u>文件。
 - 路由文件代码其实比较简单，就是一个<u>函数</u>，这个函数会接收一个app参数对象，app中包含了我们要使用的router对象和控制器对象。
@@ -135,9 +121,7 @@ module.exports = class _ extends Controller {
 ```js
 // app/router.js
 module.exports = (app) => {
-  // 解构app
   const { router, controller } = app;
-  // 定义路由
   router.get("/", controller.home.index);
 };
 ```
@@ -162,15 +146,7 @@ module.exports = app => {
 
 ## 5. 启动项目
 
-**① 基本说明**
-
-a. 前面我们安装依赖模块时，不仅安装了egg还安装了egg-bin，这个egg-bin的目的就是用来启动项目的。
-
-b. 不过，由于我们安装的是本地项目模块而不是全局模块，所以我们需要把启动代码写入 **package.json** 里面的 **script** 中才能生效。
-
-c. 写入进去之后，通过 `npm run 命令名` 进行启动。
-
-**② 写入脚本**
+**① 写入脚本**
 
 ```json
 {
@@ -180,174 +156,235 @@ c. 写入进去之后，通过 `npm run 命令名` 进行启动。
 }
 ```
 
-**③ 执行命令**
+**② 执行命令**
 
 ```shell
 $ yarn run dev
 ```
 
-**④ 运行效果**
+**③ 运行效果**
 
 ![](./images/hello_egg.png)
 
-## 6. 配置静态资源映射
+到这里，你已成功开发一个接口并且成功访问啦，接下来，我们看下关于 <u>egg.js</u> 其他知识点吧。
+
+# 四、核心
+
+## 1. 框架内置基础对象
+
+基本说明（10个对象）
+
+- koa继承而来的四个对象：**<u>Application</u>**, **<u>Context</u>**, **<u>Request</u>**, **<u>Response</u>**
+- 框架扩展的六个对象：**<u>Controller</u>**, **<u>Service</u>**, **<u>Helper</u>**, **<u>Config</u>**, **<u>Logger</u>**，[**<u>Subscription</u>**](https://eggjs.org/zh-cn/basics/objects.html#subscription)
+
+### 1.1. Application
+
+**① 说明**
+
+1）<u>Application</u> 是全局应用对象，在一个应用中，只会实例化一个。
+2）它继承自 <u>Koa.Application</u>，在它上面我们可以挂载一些全局的方法和对象。
+3）我们可以轻松的在插件或者应用中扩展 Application 对象。
+
+**② Application 的使用**
+
+由于几乎所有被框架 [Loader](https://eggjs.org/zh-cn/advanced/loader.html) 加载的文件（Controller，Service，Schedule 等），都可以 export 一个函数，这个函数会被 Loader 调用，并使用 app 作为参数。Application 对象几乎可以在编写应用时的任何一个地方获取到同时设置其值。下面说下常见的做法：
+
+1）设置Application的值
+
+一般我们在 **app.js** 中，进行application值的第一次设置，如下（app参数就等价于application对象）
+
+```js
+module.exports = class AppBootHook {
+  constructor(app) {
+    this.app = app;
+    app.username = "Li-HONGYAO";
+  }
+};
+```
+
+2）获取/修改Application 的值
+
+- 在继承于 Controller, Service 基类的实例中，可以通过 **this.app** 访问到 Application 对象。
+- 如果当前位置能访问到**ctx**对象，那么也可以通过 **this.ctx.app.属性名** 访问或修改。
+
+访问示例：
+
+```js
+// app/controller/home.js
+module.exports = class _ extends require("egg").Controller {
+  async index() {
+    // 调用扩展helper.js中的reverse方法逆序字符串
+    console.log(this.ctx.helper.reverse("123"));
+    console.log(this.app.username);
+    this.ctx.body = await this.ctx.service.home.info();
+  }
+};
+```
+
+### 1.2. Context 
+
+**① 说明**
+
+1）<u>Context</u> 是一个**请求级别的对象**，继承自 <u>Koa.Context</u>。
+2）在每一次收到用户请求时，框架会实例化一个 Context 对象，这个对象封装了这次用户请求的信息，并<u>提供</u>了许多便捷的<u>方法来 **获取请求参数** 或者 **设置响应信息**。</u>
+3）框架会将所有的 Service 挂载到 Context 实例上，一些插件也会将一些其他的方法和对象挂载到它上面（egg-sequelize 会将所有的 model 挂载在 Context 上）。
+
+**② context 的使用**
+
+最常见的 Context 实例获取方式是在 [Middleware](https://eggjs.org/zh-cn/basics/middleware.html), [Controller](https://eggjs.org/zh-cn/basics/controller.html) 以及 [Service](https://eggjs.org/zh-cn/basics/service.html) 中。
+
+- Controller 中的获取： <u>**this.ctx**</u> 
+
+- Service 中的获取： <u>**this.ctx**</u>
+
+- Middleware 中的获取：中间件函数的第一个参数，如下：
+
+  ```js
+  async function middleware(ctx, next) {
+  	console.log(ctx.query)
+  }
+  ```
+
+**③ 非用户请求的场景下我们需要访问 service / model 等 Context 实例上的对象**
+
+除了在请求时可以获取 **Context** 实例之外，在有些非用户请求的场景下我们需要访问 **service / model ** 等 Context 实例上的对象，我们可以通过 **<u>`Application.createAnonymousContext()`</u>** 方法创建一个匿名 Context 实例：
+
+```js
+module.exports = class AppBootHook {
+  constructor(app) {
+    this.app = app;
+    app.username = "Li-HONGYAO";
+  }
+  configWillLoad() {
+    const ctx = this.app.createAnonymousContext();
+    console.log(ctx.helper.reverse("123"));
+    console.log("__配置文件即将加载完成__");
+  }
+};
+```
+
+### 1.3. Request & Response
 
 **① 基本说明**
 
-a. 以前我们写 express 时，是需要自己手动去配置的。当然，使用express脚手架例外。
+1）**<u>Request</u>**：请求对象，继承自 [Koa.Request](http://koajs.com/#request)。
 
-b. 现在的话，Egg 内置了 static 插件，插件默认映射 *<u>/public/  -> app/public/</u>* 目录。
+2）**<u>Response</u>** 响应对象，继承自 [Koa.Response](http://koajs.com/#response)。
 
-c. 所以，我们只需要把静态资源都放到 <u>app/public</u> 目录即可完成自动映射。
+**② 使用方法**
+
+可以在 Context 的实例上获取到当前请求的 <u>Request</u> 和 <u>Response</u> 对象实例。
+
+```js
+module.exports = class _ extends require("egg").Controller {
+  async list() {
+    // 获取请求参数
+    const id = this.ctx.request.query.id;
+    // 响应数据
+    this.ctx.response.body = `返回id为[${id}]的数据`;
+  }
+};
+```
+
+- Koa 会在 Context 上代理一部分 Request 和 Response 上的方法和属性。
+- 如上面例子中的 `ctx.request.query.id` 和 `ctx.query.id` 是等价的。 `ctx.response.body` 和 `ctx.body` 是等价的。
+- 主要注意的是：获取 POST 的 body 应该使用 `ctx.request.body` ，而不是 `ctx.body`。
+
+**# 请求流程梳理**
+
+![](./images/egg_req_res.svg)
+
+一般而言，我们会在controller里面通过 **this.ctx.resquest/response** 获取请求参数调用service并且做出相关响应。
+
+当然，在service、中间件、等如果有需要的话，肯定也是可以获取请求/响应对象的。
+
+### 1.4. Controller
+
+框架提供了一个 Controller 基类，并推荐所有的 [Controller](https://eggjs.org/zh-cn/basics/controller.html) 都继承于该基类实现。这个 Controller 基类有下列属性：
+
+-  ctx - 当前请求的 [Context](https://eggjs.org/zh-cn/basics/objects.html#context) 实例。
+-  app - 应用的 [Application](https://eggjs.org/zh-cn/basics/objects.html#application) 实例。
+-  config - 应用的[配置](https://eggjs.org/zh-cn/basics/config.html)。
+-  service - 应用所有的 [service](https://eggjs.org/zh-cn/basics/service.html)。
+-  logger - 为当前 controller 封装的 logger 对象。
+
+引用 Controller 基类：<u>**`require('egg').Controller;`**</u>
+
+### 1.5. Service
+
+框架提供了一个 Service 基类，并推荐所有的 [Service](https://eggjs.org/zh-cn/basics/service.html) 都继承于该基类实现。
+
+Service 基类的属性和 [Controller](https://eggjs.org/zh-cn/basics/objects.html#controller) 基类属性一致，访问方式也类似：
+
+<u>**`require('egg').Service;`**</u>
+
+### 1.6. Helper
+
+Helper 用来提供一些实用的 <u>utility</u> 函数。它的作用在于我们可以将一些常用的动作抽离在 **helper.js** 里面成为一个独立的函数，这样可以用 JavaScript 来写复杂的逻辑，避免逻辑分散各处，同时可以更好的编写测试用例。
+
+Helper 自身是一个类，有和 [Controller](https://eggjs.org/zh-cn/basics/objects.html#controller) 基类一样的属性，它也会在每次请求时进行实例化，因此 Helper 上的所有函数也能获取到当前请求相关的上下文信息。
+
+<u>**`this.ctx.helper.xxx`**</u>
+
+### 1.7. Config
+
+我们推荐应用开发遵循配置和代码分离的原则，将一些需要硬编码的业务配置都放到配置文件中，同时配置文件支持各个不同的运行环境使用不同的配置，使用起来也非常方便，所有框架、插件和应用级别的配置都可以通过 Config 对象获取到，关于框架的配置，可以详细阅读 [Config 配置](https://eggjs.org/zh-cn/basics/config.html)章节。
+
+**获取方式**
+
+我们可以通过 **<u>app.config</u>** 从 Application 实例上获取到 config 对象，也可以在 Controller, Service, Helper 的实例上通过 **<u>this.config</u>** 获取到 config 对象。
+
+### 1.8. Logger
+
+框架内置了功能强大的[日志功能](https://eggjs.org/zh-cn/core/logger.html)，可以非常方便的打印各种级别的日志到对应的日志文件中，每一个 logger 对象都提供了 4 个级别的方法：
+
+- `logger.debug()`
+- `logger.info()`
+- `logger.warn()`
+- `logger.error()`
+
+在框架中提供了多个 Logger 对象，下面我们简单的介绍一下各个 Logger 对象的获取方式和使用场景。
+
+### 1.9. Subscription
+
+订阅模型是一种比较常见的开发模式，譬如消息中间件的消费者或调度任务。因此我们提供了 Subscription 基类来规范化这个模式。
+
+可以通过以下方式来引用 Subscription 基类：
+
+```js
+const Subscription = require('egg').Subscription;
+
+class Schedule extends Subscription {
+  // 需要实现此方法
+  // subscribe 可以为 async function 或 generator function
+  async subscribe() {}
+}
+```
+
+插件开发者可以根据自己的需求基于它定制订阅规范，如[定时任务](https://eggjs.org/zh-cn/basics/schedule.html)就是使用这种规范实现的。
+
+## 2. 配置静态资源映射
+
+**① 基本说明**
+
+我们只需要把静态资源放到 <u>app/public</u> 目录即可完成自动映射。
 
 **② 使用示例** 
 
 ![](./images/public_static.png)
 
-然后在浏览器输入 【http://127.0.0.1:7001/public/images/egg.png】 就可以访问了。
+然后在浏览器输入 *http://127.0.0.1:7001/public/images/egg.png* 就可以访问了。
 
-> 注意：
->
-> 1. 以前我们使用express时，一般也是写的 **public** 目录，但是访问时默认是不需要加上此目录名的，如直接访问 【http://127.0.0.1:7001/images/egg.png  】即可，但是在egg中，默认是需要加上此目录名的（当然，实际上你也可以自己在 *<u>config.default.js</u>* 文件中进行配置，如果不想加的话），具体配置方式如下：
->
->    ```js
->    config.static = {
->      prefix: "/",
->    };
->    ```
->
-> 2. 线上环境建议部署到 CDN，无需该插件。
-
-## 7. 模板渲染（了解）
-
-**① 基本说明**
-
-a. 当我们开发时，如果不使用前后端分离开发（即只提供接口形式的开发），或者需要服务端渲染时，这时我们就需要模板来渲染页面了。
-
-b. 在egg中使用模板渲染的流程如下：
-
-- 安装模块插件到本地
-- 在 **config/plugin.js** 里面启用此插件
-- 在 **config/config.default.js** 中添加view视图配置
-- 在 **app/view** 下编写模板文件
-- 定义 **controller** 获取数据渲染模板
-- 定义 **router** 处理前端请求返回渲染好的模板文件
-
-**② 使用示例（这里以 [Nunjucks](https://mozilla.github.io/nunjucks/) 模板为例）**
-
-1）安装模块插件到本地
-
-```shell
-$ yarn add egg-view-nunjucks
-```
-
-2）在 **config/plugin.js** 里面启用此插件 (注意：config目录和app同级)
+访问时我们需要拼接 <u>/public</u>，实际上如果你不想拼接，想直接通过 *http://127.0.0.1:7001/images/egg.png* 访问，你只需要在 *<u>config.default.js</u>* 文件中加入如下配置即可：
 
 ```js
-// config/plugin.js
-module.exports = {
-  nunjucks: {
-    enable: true,
-    package: "egg-view-nunjucks",
-  },
-};
+// 静态资源前缀
+config.static = { prefix: "/" };
 ```
 
-3）在 **config/config.default.js** 中添加view视图配置
+> 提示：线上环境建议部署到 [CDN](https://baike.baidu.com/item/CDN/420951)，无需该插件。
 
-```js
-config.view = {
-    defaultViewEngine: "nunjucks",
-    mapping: {
-        ".tpl": "nunjucks",
-    },
-};
-```
-
-4）在 **app/view** 下编写模板文件
-
-如果你是使用的vscode开发，那么在编写模板前最好先安装下相关vscode插件，以便对其进行语法高亮等。
-
-不过当我们安装了他后，有可能会和已经存在的html格式件插件冲突，导致无法对html文件进行格式化，这时你可以先把html进行禁用。
-
-![](./images/nunjucks.png)
-
-代码如下：
-
-```html
-<!-- app/view/news/list.tpl -->
-<html>
-  <head>
-    <title>News-新闻</title>
-  </head>
-  <body>
-    <ul class="news-view view">
-      {% for item in list %}
-        <li class="item">
-          <a href="{{ item.url }}">{{ item.title }}</a>
-        </li>
-      {% endfor %}
-    </ul>
-  </body>
-</html>
-```
-
-这个模板中需要的数据如下：list是我们具体要取的数据，但是list外面应该包含一个对象花括号
-
-```js
-{
-    list: [
-        { id: 1, title: 'this is news 1', url: '/news/1' },
-        { id: 2, title: 'this is news 2', url: '/news/2' }
-    ]
-}
-```
-
-5）定义controller获取数据渲染模板
-
-```js
-// app/controller/news.js
-const Controller = require("egg").Controller;
-
-class NewsController extends Controller {
-  async list() {
-    const dataList = {
-      list: [
-        { id: 1, title: "this is news 1", url: "/news/1" },
-        { id: 2, title: "this is news 2", url: "/news/2" },
-      ],
-    };
-    await this.ctx.render("news/list.tpl", dataList);
-  }
-}
-
-module.exports = NewsController;
-```
-
-6）定义router处理前端请求，返回渲染好的模板文件
-
-```
-// app/router.js
-module.exports = app => {
-  const { router, controller } = app;
-  router.get("/", controller.home.index);
-  router.get("/news", controller.news.list);
-}
-```
-
-7）运行效果
-
-启动浏览器，访问 http://localhost:7001/news 即可看到渲染后的页面。
-
-![](./images/news.png)
-
-注意：
-
-> - router 里面获取具体的controller时，如： `controller.news.list` 。
-> - 其中news是文件名（当我们在app/controller下创建了相关的js文件后，如果这个文件有相关导出，那么他就会自动的注入到controller对象上，可以供我们进行调用，如controller.news.list）
-> - list是news文件返回模块对象中的方法，这个方法会向客户端响应相关数据回来（我们可以在方法中返回json数据或返回渲染好的模板）
-
-## 8. 编写service
+## 3. 编写service
 
 **① 基本说明**
 
@@ -369,36 +406,31 @@ e. 在controller中使用service时，需要通过 <u>this.ctx.service</u> 拿�
 
 ```js
 // app/service/home.js
-const Service = require("egg").Service;
-
-module.exports = class _ extends Service {
+module.exports = class _ extends require("egg").Service {
   async info() {
     return {
-      name: 'Muzili',
-      job: '全栈工程师',
-      address: '成都市高新区'
-    }
+      name: "Muzili",
+      job: "全栈工程师",
+      address: "成都市高新区",
+    };
   }
-}
+};
 ```
 
 **④ 在controller中使用service**
 
 ```js
 // app/controller/home.js
-const Controller = require("egg").Controller;
-module.exports = class _ extends Controller {
+module.exports = class _ extends require("egg").Controller {
   async index() {
     this.ctx.body = await this.ctx.service.home.info();
   }
-}
+};
 ```
 
-**⑥ 数据mock**
+刷新页面即可看到 <u>service</u> 中返回的json数据啦~
 
-我上面是在service中直接写的静态json数据，实际上在我们的开发中，我们可以从数据库里面获取数据，也可以通过第三方接口获取数据。
-
-这里为了展示，我以mock数据为例。
+**⑤ 数据mock -- 模拟数据**
 
 首先我们安装mockjs依赖：
 
@@ -410,10 +442,8 @@ $ yarn add mockjs
 
 ```js
 // app/service/home.js
-const Service = require("egg").Service;
 const Mock = require("mockjs");
-
-module.exports = class _ extends Service {
+module.exports = class _ extends require("egg").Service {
   async info() {
     return Mock.mock({
       "list|5": [
@@ -421,87 +451,52 @@ module.exports = class _ extends Service {
           id: "@guid",
           title: "@ctitle",
           url: "@image(300x300, @color, #FFF, Mock.js)",
-          time: '@date("yyyy-MM-dd")', // 新增time字段
+          time: '@date("yyyy-MM-dd")', 
         },
       ],
     });
   }
-}
+};
 ```
 
 > 解读：
 >
 > 上述示例中，我们通过mock生成了5条随机数据，关于mock配置，可以 [参考这里 >>](http://mockjs.com/)
 
-## 9. 编写扩展
+## 4. 编写扩展
 
 **① 基本说明**
 
-a. 如果我们想往当前模块里面添加某些扩展功能，那么我们就可以使用View 插件支持的 Helper 来实现。
-
-b. 比如我们想在view里面使用一个功能：将 “2020-1-7” 转换成 “2020年1月7日” 的方法（举个例子），这时就可以使用扩展。
-
-c. 框架提供了一种快速扩展的方式，只需在 **app/extend** 目录下提供扩展脚本即可。
+如果我们想往当前模块里面添加某些扩展功能，那么我们就可以使用 Helper 来实现。框架提供了一种快速扩展的方式，只需在 **app/extend** 目录下提供扩展脚本即可。
 
 **② 扩展编写示例**
 
 ```js
 // app/extend/helper.js
-
-exports.relativeTime = (time) => time.replace("-", "年").replace("-", "月") + "日";
+// 逆序字符串
+exports.reverse = s => s.split("").reverse().join('');
 ```
 
-**③ 在view模板中使用扩展的示例**
-
-这里我现在news的service中添加了 `time` 字段：
+**③ 通过 <u>ctx</u> 访问扩展**
 
 ```js
-// app/service/news.js
-
-const Service = require("egg").Service;
-const Mock = require("mockjs");
-class NewsService extends Service {
-  async list() {
-    return Mock.mock({
-      "list|5": [
-        {
-          id: "@guid",
-          title: "@ctitle",
-          url: "/",
-          time: '@date("yyyy-MM-dd")', // 新增time字段
-        },
-      ],
-    });
+module.exports = class _ extends require("egg").Controller {
+  async index() {
+    // 调用扩展helper.js中的reverse方法逆序字符串
+    console.log(this.ctx.helper.reverse("123"));
+    this.ctx.body = await this.ctx.service.home.info();
   }
-}
-
-module.exports = NewsService;
+};
 ```
 
-然后就在模板中开始调用了上面的扩展方法来处理此字段：
+调用接口查看控制台输出：**<u>321</u>**
 
-```html
-<!-- app/view/news/list.tpl -->
-<html>
-  <head>
-    <title>News-新闻</title>
-  </head>
-  <body>
-    <ul class="news-view view">
-      {% for item in list %}
-        <li class="item">
-          <a href="{{ item.url }}">{{ item.title }}</a>
-          <span>{{helper.relativeTime(item.time)}}</span>
-        </li>
-      {% endfor %}
-    </ul>
-  </body>
-</html>
-```
+> 注意：
+>
+> - **app/extend/helper.js** 这个路径和文件名都是不能变的，否则默认解析就会失败，除非重新解析。
+> - 实际上只要在能访问到 **<u>ctx</u>** 的地方都可调用 <u>拓展</u>。
 
-> 注意：**app/extend/helper.js** 这个路径和文件名都是不能变的，否则默认解析就会失败，除非重新解析
-
-## 10. 编写 Middleware中间件
+## 5. 编写 Middleware中间件
 
 **① 基本说明**
 
@@ -569,7 +564,7 @@ config.logmid = {
 };
 ```
 
-## 11. 配置文件
+## 6. 配置文件
 
 写业务的时候，不可避免的需要有配置文件，框架提供了强大的 **配置合并管理** 功能：
 
@@ -643,7 +638,7 @@ module.exports = class _ extends Service {
 
 2）合并时，如果字段名不同，则会将其合并在一起。
 
-## 12. 编写定时任务
+## 7. 定时任务
 
 **① 基本说明**
 
@@ -720,7 +715,7 @@ module.exports = {
 
 时（`h`）/ 分（`m`）/ 秒（`s`）
 
-## 13. 启动自定义 
+## 8. 启动自定义 
 
 **① 基本说明**
 
@@ -801,7 +796,7 @@ __http / https server 已启动，开始接受外部请求__
 
 在自定义生命周期函数中不建议做太耗时的操作，框架会有启动的超时检测。
 
-## 14. Agent（代理进程）
+## 9. Agent（代理进程）
 
 **① 基本说明**
 
@@ -848,7 +843,7 @@ module.exports = AppBootHook;
 
 这个例子中，**agent.js** 的代码会执行在 agent 进程上， **app.js** 的代码会执行在 Worker 进程上，他们通过框架封装的 **messenger** 对象进行进程间通讯（IPC）。
 
-## 15. egg渐进式开发
+## 10. egg渐进式开发
 
 所谓的egg渐进式开发的含义是：
 当我们开发一个项目时，从一个**简单的扩展功能** --> 写成一个项目中的**插件** ---> **发布**到npm上的独立插件 ---> 许多功能和插件集合到一起形成一个**框架**。
@@ -861,7 +856,7 @@ module.exports = AppBootHook;
 
 4） 第四步：许多功能和插件集合到一起形成一个框架，这部和步骤三类似，不过更复杂更庞大而已
 
-## 16. 处理跨域
+## 11. 处理跨域
 
 **① 安装依赖**
 
@@ -901,7 +896,7 @@ config.cors = {
 };
 ```
 
-## 17. apiDoc
+## 12. apiDoc
 
 **① 安装依赖**
 
@@ -1018,239 +1013,9 @@ config.security = {
 };
 ```
 
-2）关于apiDoc 更多注释模板，请 [参考这里 >>](https://apidocjs.com/#param-api-param)
+2）关于apiDoc 更多注释模板，请 [参考这里 >>
 
-# 四、egg入门详解（针对概览内容详细说明）
-
-## 1. 目录结构
-
-https://eggjs.org/zh-cn/basics/structure.html
-
-## 2. 框架内置基础对象
-
-基本说明（10个对象）
-
-- 从koa继承而来的四个对象：**<u>Application</u>**, **<u>Context</u>**, **<u>Request</u>**, **<u>Response</u>**
-- 框架扩展的六个对象：**<u>Controller</u>**, **<u>Service</u>**, **<u>Helper</u>**, **<u>Config</u>**, **<u>Logger</u>**，[**<u>Subscription</u>**](https://eggjs.org/zh-cn/basics/objects.html#subscription)
-
-### 2.1. Application
-
-**① 说明**
-
-1）<u>Application</u> 是全局应用对象，在一个应用中，只会实例化一个。
-2）它继承自 <u>Koa.Application</u>，在它上面我们可以挂载一些全局的方法和对象。
-3）我们可以轻松的在插件或者应用中扩展 Application 对象。
-
-**② Application 的使用**
-
-由于几乎所有被框架 [Loader](https://eggjs.org/zh-cn/advanced/loader.html) 加载的文件（Controller，Service，Schedule 等），都可以 export 一个函数，这个函数会被 Loader 调用，并使用 app 作为参数。Application 对象几乎可以在编写应用时的任何一个地方获取到同时设置其值。下面说下常见的做法：
-
-1）设置Application的值
-
-一般我们在 **app.js** 中，进行application值的第一次设置，如下（app参数就等价于application对象）
-
-```js
-class AppBootHook {
-  constructor(app) {
-    this.app = app;
-    app.name = "Li-HONGYAO"; // 在应用启动时进行赋值
-  }
-}
-```
-
-2）获取/修改Application 的值
-
-- 在继承于 Controller, Service 基类的实例中，可以通过 **this.app** 访问到 Application 对象。
-- 如果当前位置能访问到**ctx**对象，那么也可以通过 **this.ctx.app.属性名** 访问或修改。
-
-### 2.2. Context - 请求上下文
-
-**① 说明**
-
-1）<u>Context</u> 是一个**请求级别的对象**，继承自 <u>Koa.Context</u>。
-2）在每一次收到用户请求时，框架会实例化一个 Context 对象，这个对象封装了这次用户请求的信息，并<u>提供</u>了许多便捷的<u>方法来 **获取请求参数** 或者 **设置响应信息**。</u>
-3）框架会将所有的 Service 挂载到 Context 实例上，一些插件也会将一些其他的方法和对象挂载到它上面（egg-sequelize 会将所有的 model 挂载在 Context 上）。
-
-**② context 的使用**
-
-最常见的 Context 实例获取方式是在 [Middleware](https://eggjs.org/zh-cn/basics/middleware.html), [Controller](https://eggjs.org/zh-cn/basics/controller.html) 以及 [Service](https://eggjs.org/zh-cn/basics/service.html) 中。
-
-- Controller 中的获取： this.ctx
-
-- Service 中的获取： this.ctx
-
-- Middleware 中的获取：中间件函数的第一个参数，如下：
-
-  ```js
-  async function middleware(ctx, next) {
-  	// ctx is instance of Context
-  	console.log(ctx.query)
-  }
-  ```
-
-**③ 非用户请求的场景下我们需要访问 service / model 等 Context 实例上的对象**
-
-除了在请求时可以获取 **Context** 实例之外，在有些非用户请求的场景下我们需要访问 **service / model ** 等 Context 实例上的对象，我们可以通过 **<u>`Application.createAnonymousContext()`</u>** 方法创建一个匿名 Context 实例：
-
-### 2.3. Request & Response
-
-**① 基本说明**
-
-1）**<u>Request</u>** 是一个**请求级别的对象**，继承自 [Koa.Request](http://koajs.com/#request)。封装了 Node.js 原生的 HTTP Request 对象，提供了一系列辅助方法获取 HTTP 请求常用参数。
-
-2）**<u>Response</u>** 是一个**请求级别的对象**，继承自 [Koa.Response](http://koajs.com/#response)。封装了 Node.js 原生的 HTTP Response 对象，提供了一系列辅助方法设置 HTTP 响应。
-
-**② 使用方法**
-
-可以在 Context 的实例上获取到当前请求的 <u>Request(*ctx.request*)</u> 和 <u>Response(*ctx.response*)</u> 实例。
-
-```js
-// app/controller/home.js
-const Controller = require("egg").Controller;
-
-class HomeController extends Controller {
-  async index() {
-    const { app, ctx } = this;
-    const id = ctx.request.query.id;
-    ctx.response.body = app.cache.get(id)
-  }
-}
-
-module.exports = HomeController;
-```
-
-- Koa 会在 Context 上代理一部分 Request 和 Response 上的方法和属性。
-- 如上面例子中的 `ctx.request.query.id` 和 `ctx.query.id` 是等价的。 `ctx.response.body` 和 `ctx.body` 是等价的。
-- 主要注意的是：获取 POST 的 body 应该使用 `ctx.request.body` ，而不是 `ctx.body`。
-
-**# 请求流程梳理**
-
-![](./images/egg_req_res.svg)
-
-一般而言，我们会在controller里面通过 **this.ctx.resquest/response** 获取请求参数调用service并且做出相关响应。
-
-当然，在service、中间件、等如果有需要的话，肯定也是可以获取请求/响应对象的。
-
-### 2.4. Controller
-
-框架提供了一个 Controller 基类，并推荐所有的 [Controller](https://eggjs.org/zh-cn/basics/controller.html) 都继承于该基类实现。这个 Controller 基类有下列属性：
-
--  ctx - 当前请求的 [Context](https://eggjs.org/zh-cn/basics/objects.html#context) 实例。
-- app - 应用的 [Application](https://eggjs.org/zh-cn/basics/objects.html#application) 实例。
-- config - 应用的[配置](https://eggjs.org/zh-cn/basics/config.html)。
-- service - 应用所有的 [service](https://eggjs.org/zh-cn/basics/service.html)。
-- logger - 为当前 controller 封装的 logger 对象。
-
-在 Controller 文件中，可以通过两种方式来引用 Controller 基类：
-
-```js
-// app/controller/user.js
-
-// 从 egg 上获取（推荐）
-const Controller = require("egg").Controller;
-class UserController extends Controller {
-  // implement
-}
-module.exports = UserController;
-
-// 从 app 实例上获取
-module.exports = (app) => {
-  return class UserController extends app.Controller {
-    // implement
-  };
-};
-```
-
-> 提示：只有当整个文件就是一个function时，才能接受一个app参数
-
-### 2.5. Service
-
-框架提供了一个 Service 基类，并推荐所有的 [Service](https://eggjs.org/zh-cn/basics/service.html) 都继承于该基类实现。
-
-Service 基类的属性和 [Controller](https://eggjs.org/zh-cn/basics/objects.html#controller) 基类属性一致，访问方式也类似：
-
-```js
-// app/service/user.js
-
-// 从 egg 上获取（推荐）
-
-const Service = require("egg").Service;
-class UserService extends Service {
-  // implement
-}
-module.exports = UserService;
-
-// 从 app 实例上获取
-module.exports = (app) => {
-  return class UserService extends app.Service {
-    // implement
-  };
-};
-```
-
-### 2.6. Helper
-
-Helper 用来提供一些实用的 <u>utility</u> 函数。它的作用在于我们可以将一些常用的动作抽离在 **helper.js** 里面成为一个独立的函数，这样可以用 JavaScript 来写复杂的逻辑，避免逻辑分散各处，同时可以更好的编写测试用例。
-
-Helper 自身是一个类，有和 [Controller](https://eggjs.org/zh-cn/basics/objects.html#controller) 基类一样的属性，它也会在每次请求时进行实例化，因此 Helper 上的所有函数也能获取到当前请求相关的上下文信息。
-
-**# 通过context调用helper**
-
-前面我们演示了定义自己的 <u>helper</u> 函数，并且在模板里面进行调用，然后不管在什么地方，只要含有 Context ，我们都能进行调用，
-
-如在controller里面进行调用
-
-```js
-// app/controller/user.js
-const Controller = require("egg").Controller;
-class UserController extends Controller {
-  async fetch() {
-    const { app, ctx } = this;
-    const id = ctx.query.id;
-    ctx.body = ctx.helper.formatUser(user);
-  }
-}
-module.exports = UserController;
-```
-
-### 2.7. Config
-
-我们推荐应用开发遵循配置和代码分离的原则，将一些需要硬编码的业务配置都放到配置文件中，同时配置文件支持各个不同的运行环境使用不同的配置，使用起来也非常方便，所有框架、插件和应用级别的配置都可以通过 Config 对象获取到，关于框架的配置，可以详细阅读 [Config 配置](https://eggjs.org/zh-cn/basics/config.html)章节。
-
-**获取方式**
-
-我们可以通过 **app.config** 从 Application 实例上获取到 config 对象，也可以在 Controller, Service, Helper 的实例上通过 **this.config** 获取到 config 对象。
-
-### 2.8. Logger
-
-框架内置了功能强大的[日志功能](https://eggjs.org/zh-cn/core/logger.html)，可以非常方便的打印各种级别的日志到对应的日志文件中，每一个 logger 对象都提供了 4 个级别的方法：
-
-- `logger.debug()`
-- `logger.info()`
-- `logger.warn()`
-- `logger.error()`
-
-在框架中提供了多个 Logger 对象，下面我们简单的介绍一下各个 Logger 对象的获取方式和使用场景。
-
-### 2.9. Subscription
-
-订阅模型是一种比较常见的开发模式，譬如消息中间件的消费者或调度任务。因此我们提供了 Subscription 基类来规范化这个模式。
-
-可以通过以下方式来引用 Subscription 基类：
-
-```js
-const Subscription = require('egg').Subscription;
-
-class Schedule extends Subscription {
-  // 需要实现此方法
-  // subscribe 可以为 async function 或 generator function
-  async subscribe() {}
-}
-```
-
-插件开发者可以根据自己的需求基于它定制订阅规范，如[定时任务](https://eggjs.org/zh-cn/basics/schedule.html)就是使用这种规范实现的。
-
-## 3. 运行环境
+## 13. 运行环境
 
 文档描述：https://eggjs.org/zh-cn/basics/env.html
 
