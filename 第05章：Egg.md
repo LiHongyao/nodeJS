@@ -37,7 +37,7 @@ egg考虑到 企业级应用在追求规范和共建的同时，还需要思考�
 
 https://eggjs.org/zh-cn/intro/egg-and-koa.html
 
-# 三、egg 入门概览
+# 三、初体验
 
 ## 1. 项目搭建
 
@@ -433,7 +433,7 @@ module.exports = class _ extends Service {
 >
 > 上述示例中，我们通过mock生成了5条随机数据，关于mock配置，可以 [参考这里 >>](http://mockjs.com/)
 
-## 9. 编写扩展（了解）
+## 9. 编写扩展
 
 **① 基本说明**
 
@@ -1102,7 +1102,7 @@ class AppBootHook {
 
 **② 使用方法**
 
-可以在 Context 的实例上获取到当前请求的 Request(*ctx.request*) 和 Response(*ctx.response*) 实例。
+可以在 Context 的实例上获取到当前请求的 <u>Request(*ctx.request*)</u> 和 <u>Response(*ctx.response*)</u> 实例。
 
 ```js
 // app/controller/home.js
@@ -1190,13 +1190,13 @@ module.exports = (app) => {
 
 ### 2.6. Helper
 
-Helper 用来提供一些实用的 utility 函数。它的作用在于我们可以将一些常用的动作抽离在 **helper.js** 里面成为一个独立的函数，这样可以用 JavaScript 来写复杂的逻辑，避免逻辑分散各处，同时可以更好的编写测试用例。
+Helper 用来提供一些实用的 <u>utility</u> 函数。它的作用在于我们可以将一些常用的动作抽离在 **helper.js** 里面成为一个独立的函数，这样可以用 JavaScript 来写复杂的逻辑，避免逻辑分散各处，同时可以更好的编写测试用例。
 
 Helper 自身是一个类，有和 [Controller](https://eggjs.org/zh-cn/basics/objects.html#controller) 基类一样的属性，它也会在每次请求时进行实例化，因此 Helper 上的所有函数也能获取到当前请求相关的上下文信息。
 
 **# 通过context调用helper**
 
-前面我们演示了定义自己的helper函数，并且在模板里面进行调用，然后不管在什么地方，只要含有 Context ，我们都能进行调用，
+前面我们演示了定义自己的 <u>helper</u> 函数，并且在模板里面进行调用，然后不管在什么地方，只要含有 Context ，我们都能进行调用，
 
 如在controller里面进行调用
 
@@ -1207,7 +1207,6 @@ class UserController extends Controller {
   async fetch() {
     const { app, ctx } = this;
     const id = ctx.query.id;
-    const user = app.cache.get(id);
     ctx.body = ctx.helper.formatUser(user);
   }
 }
@@ -1218,7 +1217,7 @@ module.exports = UserController;
 
 我们推荐应用开发遵循配置和代码分离的原则，将一些需要硬编码的业务配置都放到配置文件中，同时配置文件支持各个不同的运行环境使用不同的配置，使用起来也非常方便，所有框架、插件和应用级别的配置都可以通过 Config 对象获取到，关于框架的配置，可以详细阅读 [Config 配置](https://eggjs.org/zh-cn/basics/config.html)章节。
 
-**# 获取方式**
+**获取方式**
 
 我们可以通过 **app.config** 从 Application 实例上获取到 config 对象，也可以在 Controller, Service, Helper 的实例上通过 **this.config** 获取到 config 对象。
 
