@@ -1,9 +1,9 @@
-node_modules
-logs
-run
+node_modules/
+logs/
+run/
 
 package-lock.json
 yarn.lock
 
-.idea
+.idea/
 .DS_Store

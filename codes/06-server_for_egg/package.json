@@ -1,13 +1,27 @@
 {
-  "name": "06-server_for_egg",
+  "name": "egg-basic",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "egg-bin dev"
+    "dev": "egg-bin dev",
+    "docs": "npx apidoc -i ./app/controller/ -o app/public/docs"
+  },
+  "apidoc": {
+    "name": "Api-documents",
+    "description": "Life is brief, and then you die, you know?",
+    "title": "ApiDoc 文档示例",
+    "url": "http://192.168.0.13:7001",
+    "template": {
+      "forceLanguage": "zh_cn"
+    }
   },
   "dependencies": {
-    "egg": "^2.31.0",
+    "apidoc": "^0.50.0",
+    "egg": "^2.30.0",
+    "egg-cors": "^2.2.3",
+    "egg-mongoose": "^3.3.1",
+    "egg-view-nunjucks": "^2.3.0",
     "mockjs": "^1.1.0"
   },
   "devDependencies": {
