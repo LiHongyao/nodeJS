@@ -1,14 +1,15 @@
 /*
  * @Author: Lee
- * @Date: 2021-08-16 09:38:54
+ * @Date: 2021-10-24 12:04:24
  * @LastEditors: Lee
- * @LastEditTime: 2021-10-15 15:39:03
+ * @LastEditTime: 2021-10-24 20:56:57
  */
 
-const Controller = require("egg").Controller;
-module.exports = class _ extends Controller {
+const Controller = require('egg').Controller;
+class HomeController extends Controller {
   async index() {
-    this.ctx.body = await this.ctx.service.home.info();
+    // 调用service获取数据并响应给调用者
+    this.ctx.body = await this.ctx.service.home.index();
   }
 }
-
+module.exports = HomeController;

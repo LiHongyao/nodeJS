@@ -795,79 +795,35 @@ module.exports = app => {
 };
 ```
 
-## 8. 配置文件
+## 8. 环境配置
 
-写业务的时候，不可避免的需要有配置文件，框架提供了强大的 **配置合并管理** 功能：
+文档描述：https://eggjs.org/zh-cn/basics/env.html
 
-- 支持按环境变量加载不同的配置文件，如 `config.local.js`（开发环境）， `config.prod.js` （生产环境）等等。
-- 应用/插件/框架都可以配置自己的配置文件，框架将按顺序合并加载。
-- 具体合并逻辑可参见 [配置文件](https://eggjs.org/zh-cn/basics/config.html#配置加载顺序)。
-
-**① 实例说明**
-
-1）先在默认配置（<u>config.default.js</u>）里面给logmid中间件配置对象添加参数
-
-```js
-// 传入logmid中间件的options参数
-config.logmid = {
-  desc: "日志信息：",
-  name: "Li-HONGYAO",
-};
+```json
+"scripts": {
+  "dev": "egg-bin dev --env=local",
+  "dev-test": "egg-bin dev --env=test",
+  "dev-preview": "egg-bin dev --env=preview",
+  "dev-build": "egg-bin dev --env=production"
+},
 ```
 
-2）创建一个开发模式下的配置文件 **config.local.js**，然后往里面添加 **logmid** 中间件配置参数：
+> --env = 环境名：配置当前环境
 
-```js
-// config/config.local.js
-module.exports = (appInfo) => {
-  const config = (exports = {});
-
-  // 传入logmid中间件的options参数
-  config.logmid = {
-    desc: "日志信息（开发环境）：",
-  };
-
-  return {
-    ...config,
-  };
-};
+```shell
+ npm run dev  //启动本地环境
+ npm run dev-test  //启动测试环境
+ npm run dev-preview  //启动准生产环境
+ npm run dev-production  //启动生产环境
 ```
 
-3）最后在service中打印此配置最终值
+config 配置：
 
-```js
-// app/service/home.js
-const Service = require("egg").Service;
-const Mock = require("mockjs");
-module.exports = class _ extends Service {
-  async info() {
-    // 打印中间件配置值
-    console.log(this.config.logmid);
-    return Mock.mock({
-      "list|5": [
-        {
-          id: "@guid",
-          title: "@ctitle",
-          url: "@image(300x300, @color, #FFF, Mock.js)",
-          time: '@date("yyyy-MM-dd")', // 新增time字段
-        },
-      ],
-    });
-  }
-};
-```
-
-**② 合并结果**
-
-```
-{ desc: '日志信息（开发环境）：', name: 'Li-HONGYAO' }
-```
-
-通过打印信息可以看出：
-
-1）合并时，如果字段名相同，则会用当前环境的配置覆盖默认配置，比如 `desc` 字段，则使用的是 **config.local.js** 文件中的值。
-
-2）合并时，如果字段名不同，则会将其合并在一起。
+- config.default.js 默认配置
+- config.local.js 本地环境配置
+- config.test.js 测试环境配置
+- config.preview.js 准生产环境配置
+- config.production.js 生产环境配置
 
 ## 9. 定时任务
 
@@ -1006,7 +962,9 @@ module.exports = AppBootHook;
 
 4） 第四步：许多功能和插件集合到一起形成一个框架，这部和步骤三类似，不过更复杂更庞大而已
 
-## 12. apiDoc
+## 12. 接口文档
+
+### 12.1. apiDoc
 
 生成 <u>api-document</u> 接口文档
 
@@ -1111,47 +1069,134 @@ $ npm run docs
 
 至此，接口文档就生成啦。
 
-## 13. 运行环境
+### 12.2. swagger
 
-文档描述：https://eggjs.org/zh-cn/basics/env.html
+[官方使用文档 >>](https://www.npmjs.com/package/egg-swagger-doc)
 
-### 13.1. egg 已经存在的几种运行环境
+[git](https://github.com/Yanshijie-EL/egg-swagger-doc)
 
-| EGG_SERVER_ENV | 说明         |
-| -------------- | ------------ |
-| local          | 本地开发环境 |
-| unittest       | 单元测试     |
-| prod           | 生产环境     |
+**① 安装依赖**
 
-> 提示：
->
-> 1）不同的运行环境会对应不同的配置，具体请阅读 Config 配置。
->
-> 2）你也可以自定义运行环境值
+```shell
+$ npm install egg-swagger-doc
+```
 
-### 13.2. 与 NODE ENV 的区别
+**② 配置**
 
-很多 Node.js 应用会使用 NODE_ENV 来区分运行环境，但 EGG_SERVER_ENV 区分得更加精细。
+```js
+// config/config.default.js
+config.swaggerdoc = {
+  dirScanner: './app/controller', // 配置自动扫描的控制器路径
+  apiInfo: {
+    title: '接口文档',
+    description: 'Swagger UI 测试接口文档',
+    version: '1.0.0', //
+    termsOfService: 'http://swagger.io/terms/',
+    contact: {
+      email: 'lihy_online@163.com',
+    },
+    license: {
+      name: 'Apache 2.0',
+      url: 'http://www.apache.org/licenses/LICENSE-2.0.html',
+    },
+  },
+  basePath: '/', // 配置基础路径
+  schemes: ['http', 'https'], // 配置支持的协议
+  consumes: ['application/json'], // 指定处理请求的提交内容类型 (Content-Type)，如 application/json、text/html
+  produces: ['application/json'], // 指定返回的内容类型，仅当 request 请求头中的(Accept)类型中包含该指定类型才返回
+  securityDefinitions: {}, // 配置接口安全授权方式
+  enableSecurity: false, // 是否启用授权，默认 false
+  // enableValidate: true, // 是否启用参数校验，默认 true
+  routerMap: false, // 是否启用自动生成路由(实验功能)，默认 true
+  enable: true, // 默认 true
+}
+```
 
-一般的项目开发流程包括本地开发环境、测试环境、生产环境等，除了本地开发环境和测试环境外，其他环境可统称为**服务器环境**，
+**③ 启用插件**
 
-服务器环境的 NODE_ENV 应该为 production。而且 npm 也会使用这个变量，在应用部署的时候一般不会安装 devDependencies，所以这个值也应该为 production。
+```js
+// config/plugin.js
+swaggerdoc: {
+  enable: true,
+  package: 'egg-swagger-doc'
+}
+```
 
-框架默认支持的运行环境及映射关系（如果未指定 EGG_SERVER_ENV 会根据 NODE_ENV 来匹配）
+**④ 编写contract**
 
-| **NODE_ENV** | **EGG_SERVER_ENV** | **说明**     |
-| ------------ | ------------------ | ------------ |
-|              | local              | 本地开发环境 |
-| test         | unittest           | 单元测试     |
-| production   | prod               | 生产环境     |
+```js
+// app/contract/user.js
+module.exports = {
+  loginRequest: {
+    username: {
+      type: 'string',
+      required: true,
+      description: '账号',
+      example: 'admin',
+    },
+    password: {
+      type: 'string',
+      required: true,
+      description: '密码',
+      example: '123',
+    },
+  },
+};
+```
 
-例如，当 NODE_ENV 为 production 而 EGG_SERVER_ENV 未指定时，框架会将 EGG_SERVER_ENV 设置成 prod。
+**⑤ 编写注释**
 
-### 3.3. 自定义环境
+```js
+/**
+ * @controller 用户
+ */
 
-常规开发流程可能不仅仅只有以上几种环境，Egg 支持自定义环境来适应自己的开发流程。
+// app/controller/user.js
+const Controller = require('egg').Controller;
 
-比如，要为开发流程增加集成测试环境 SIT。将 EGG_SERVER_ENV 设置成 sit（并建议设置 NODE_ENV = production），启动时会加载 **config/config.sit.js**，运行环境变量 **app.config.env** 会被设置成 **sit**。
+class UserController extends Controller {
+  /**
+   * @router post /user/login
+   * @summary 登录
+   * @description 接口的描述信息
+   * @request body loginRequest
+
+   */
+  async login() {
+    // 获取参数
+    const { username, password } = this.ctx.request.body;
+    // 逻辑判断（理论上这一部分代码应该抽离到service中去）
+    if (!username || !password) {
+      this.ctx.body = {
+        code: -10,
+        message: '请填写用户名或密码',
+      };
+    } else if (username === 'admin' && password === '123') {
+      this.ctx.body = {
+        code: 0,
+        data: {
+          name: 'Li-HONGYAO',
+          job: '全栈工程师',
+          address: '成都市高新区',
+        },
+        message: '登录成功',
+      };
+    } else {
+      this.ctx.body = {
+        code: -10,
+        message: '账号或密码错误',
+      };
+    }
+  }
+}
+module.exports = UserController;
+```
+
+**⑥ 访问**
+
+http://127.0.0.1:7001/swagger-ui.html
+
+
 
 # 五、连接数据库
 

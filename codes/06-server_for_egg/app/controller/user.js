@@ -1,21 +1,23 @@
 /*
  * @Author: Lee
- * @Date: 2021-08-16 15:52:47
+ * @Date: 2021-10-25 09:12:42
  * @LastEditors: Lee
- * @LastEditTime: 2021-10-15 17:29:59
+ * @LastEditTime: 2021-10-25 14:01:02
  */
-// app/controller/user.js
 
-const Controller = require("egg").Controller;
-module.exports = class _ extends Controller {
+/**
+ * @controller 用户
+ */
+
+// app/controller/user.js
+const Controller = require('egg').Controller;
+
+class UserController extends Controller {
   /**
-   * @api {POST} /user/login 登录
-   * @apiName login
-   * @apiGroup 用户相关
-   * @apiVersion 1.0.0
-   * @apiParam {String} username 登录账号
-   * @apiParam {String} password 登录密码
-   *       
+   * @router post /user/login
+   * @summary 登录
+   * @description 用户登录
+   * @request body loginRequest
    */
   async login() {
     // 获取参数
@@ -24,23 +26,32 @@ module.exports = class _ extends Controller {
     if (!username || !password) {
       this.ctx.body = {
         code: -10,
-        message: "请填写用户名或密码",
+        message: '请填写用户名或密码',
       };
-    } else if (username === "admin" && password === "123") {
+    } else if (username === 'admin' && password === '123') {
       this.ctx.body = {
         code: 0,
         data: {
-          name: "Li-HONGYAO",
-          job: "全栈工程师",
-          address: "成都市高新区",
+          name: 'Li-HONGYAO',
+          job: '全栈工程师',
+          address: '成都市高新区',
         },
-        message: "登录成功",
+        message: '登录成功',
       };
     } else {
       this.ctx.body = {
         code: -10,
-        message: "账号或密码错误",
+        message: '账号或密码错误',
       };
     }
   }
-};
+  async info() {
+    const { ctx } = this;
+    const id = ctx.params.id;
+    ctx.body = {
+      id,
+      name: 'Li-HONGYAO',
+    };
+  }
+}
+module.exports = UserController;
