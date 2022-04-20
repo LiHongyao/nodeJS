@@ -1,50 +1,41 @@
-https://www.postman.com/downloads/
+- [postman >>](https://www.postman.com/downloads/)
+- [中文官网 >>](https://eggjs.org/zh-cn/)
 
 # 一、概述
 
-中文官网：https://eggjs.org/zh-cn/
-
-## 1. Egg.js 是什么（诞生目的）？
+## 1. Egg.js 是什么？
 
 **Egg.js 为企业级框架和应用而生**，帮助开发团队和开发人员降低开发和维护成本。
 
 > 注：Egg.js 缩写为 Egg
 
-## 2. 设计原则（核心功能+插件机制）
+## 2. 设计原则
 
-egg考虑到 企业级应用在追求规范和共建的同时，还需要思考如何平衡不同团队之间的差异，求同存异。所有egg没有选择社区常见框架的大集市模式（集成如数据库、模板引擎、前端框架等功能），而是专注于提供 Web 开发的**核心功能**和一套灵活可扩展的**插件机制**。
+专注提供 **核心功能** 和灵活可扩展的 **插件机制**。
 
-通过 Egg插件机制，团队的架构师和技术负责人可以非常容易地基于自身的技术架构在 Egg 基础上扩展出适合自身业务场景的框架。
+奉行『**约定优于配置**』，按照 [一套统一的约定](https://eggjs.org/zh-cn/advanced/loader.html) 进行应用开发。
 
-最后：Egg 奉行『**约定优于配置**』，按照[一套统一的约定](https://eggjs.org/zh-cn/advanced/loader.html)进行应用开发。
+## 3. 特性
 
-## 3. 与社区框架的差异（和express/sails差异）
-
-[Express](http://expressjs.com/) 是 Node.js 社区广泛使用的框架，简单且扩展性强，非常适合做个人项目。但框架本身缺少约定，标准的 MVC 模型会有各种千奇百怪的写法。Egg 按照约定进行开发，奉行『约定优于配置』，团队协作成本低。【[Express](http://expressjs.com/) 框架缺少约定】。
-
-[Sails](http://sailsjs.com/) 是和 Egg 一样奉行『约定优于配置』的框架，扩展性也非常好。但是相比 Egg，[Sails](http://sailsjs.com/) 支持 Blueprint REST API、[WaterLine](https://github.com/balderdashy/waterline) 这样可扩展的 ORM、前端集成、WebSocket 等，但这些功能都是由 [Sails](http://sailsjs.com/) 提供的。而 Egg 不直接提供功能，只是集成各种功能插件，比如实现 egg-blueprint，egg-waterline 等这样的插件，再使用 sails-egg 框架整合这些插件就可以替代 [Sails](http://sailsjs.com/) 了。【sails框架本身集成了很多功能】.
-
-## 4. 特性
-
-- 提供基于 Egg [定制上层框架](https://eggjs.org/zh-cn/advanced/framework.html)的能力
-- 高度可扩展的[插件机制](https://eggjs.org/zh-cn/basics/plugin.html)
-- 内置[多进程管理](https://eggjs.org/zh-cn/advanced/cluster-client.html)
+- 提供基于 Egg [定制上层框架](https://eggjs.org/zh-cn/advanced/framework.html) 的能力
+- 高度可扩展的 [插件机制](https://eggjs.org/zh-cn/basics/plugin.html)
+- 内置 [多进程管理](https://eggjs.org/zh-cn/advanced/cluster-client.html)
 - 基于 [Koa](http://koajs.com/) 开发，性能优异
 - 框架稳定，测试覆盖率高
 - [渐进式开发](https://eggjs.org/zh-cn/tutorials/progressive.html)
 
-# 二、egg.js 和 koa
+## 5. Egg.js 与 Koa
 
-https://eggjs.org/zh-cn/intro/egg-and-koa.html
+[参考这里 >>](https://www.eggjs.org/zh-CN/intro/egg-and-koa)
 
 # 三、框架内置基础对象
 
 基本说明（10个对象）
 
 - koa继承而来的四个对象：**<u>Application</u>**, **<u>Context</u>**, **<u>Request</u>**, **<u>Response</u>**
-- 框架扩展的六个对象：**<u>Controller</u>**, **<u>Service</u>**, **<u>Helper</u>**, **<u>Config</u>**, **<u>Logger</u>**，[**<u>Subscription</u>**](https://eggjs.org/zh-cn/basics/objects.html#subscription)
+- 框架扩展的六个对象：**<u>Controller</u>**, **<u>Service</u>**, **<u>Helper</u>**, **<u>Config</u>**, **<u>Logger</u>**，**<u>Subscription</u>**
 
-## 1. Application
+## 1. [Application](https://www.eggjs.org/zh-CN/basics/objects#application)
 
 **① 说明**
 
@@ -241,6 +232,8 @@ module.exports = Schedule;
 
 # 四、初体验
 
+[逐步搭建参考指南 >>](https://www.eggjs.org/zh-CN/intro/quickstart#%E9%80%90%E6%AD%A5%E6%90%AD%E5%BB%BA)
+
 ## 1. 创建项目 
 
 ```shell
@@ -250,11 +243,22 @@ $ npm install egg
 $ npm install egg-bin --save-dev 
 ```
 
+添加 `npm scripts` 到 `package.json`：
+
+```json
+{
+  "name": "egg-example",
+  "scripts": {
+    "dev": "egg-bin dev"
+  }
+}
+```
+
 ## 2. 目录结构
 
 构建目录结构：
 
-```
+```ini
 .
 ├── app
     ├── controller            # 控制器/解析用户的输入，处理后返回相应的结果
@@ -268,8 +272,8 @@ $ npm install egg-bin --save-dev
     └── router.js             # 用于配置 URL 路由规则（前端访问路由）
 ├── config        
     ├── config.default.js     # 配置文件
-    └── plugin.js   					# 配置需要加载的插件
-└── app.js              			# 启动自定义：用于自定义启动时的初始化工作
+    └── plugin.js   		  # 配置需要加载的插件
+└── app.js              	  # 启动自定义：用于自定义启动时的初始化工作
 ```
 
 [更多目录结构请参考官方文档 >>](https://eggjs.org/zh-cn/basics/structure.html)
@@ -438,7 +442,7 @@ $ npm run dev
 
 # 五、核心
 
-## 1. 配置静态资源映射
+## 01. 配置静态资源映射
 
 **① 基本说明**
 
@@ -454,9 +458,9 @@ $ npm run dev
             └── logo.png
 ```
 
-在 <u>public/images</u> 目录下放一张  <u>logo.png</u> 图片资源。然后在浏览器输入 *http://127.0.0.1:7001/public/images/logo.png* 就可以访问了。
+在 <u>public/images</u> 目录下放一张  <u>logo.png</u> 图片资源。然后在浏览器输入 *`http://127.0.0.1:7001/public/images/logo.png`* 就可以访问了。
 
-访问时我们需要拼接 <u>/public</u>，实际上如果你不想拼接，想直接通过 *http://127.0.0.1:7001/images/egg.png* 访问，你只需要在 *<u>config.default.js</u>* 文件中加入如下配置即可：
+访问时我们需要拼接 <u>/public</u>，实际上如果你不想拼接，想直接通过 *`http://127.0.0.1:7001/images/egg.png`* 访问，你只需要在 *<u>config.default.js</u>* 文件中加入如下配置即可：
 
 ```js
 // - 静态资源前缀
@@ -465,7 +469,7 @@ config.static = { prefix: '/' };
 
 > 提示：线上环境建议部署到 [CDN](https://baike.baidu.com/item/CDN/420951)，无需该插件。
 
-##　2. 路由分组
+##　02. 路由分组
 
 在配置路由的过程中如果将所有的路由全部放在 <u>app/router.js</u> 里面，难免显得太过于臃肿了。而 [官方](https://eggjs.org/zh-cn/basics/router.html#%E5%A4%AA%E5%A4%9A%E8%B7%AF%E7%94%B1%E6%98%A0%E5%B0%84) 本身提供了两种方案用于解决路由映射过多的问题。这里我们以 [egg-router-plus](https://www.npmjs.com/package/egg-router-plus) 为例。
 
@@ -516,7 +520,7 @@ module.exports = (app) => {
 
 > 提示：如果你使用路由分组，那么 <u>app/router.js</u> 文件就可以删除了。
 
-## 3. 获取路由参数
+## 03. 获取路由参数
 
 ### 3.1. path params
 
@@ -593,7 +597,7 @@ module.exports = UserController;
 
 
 
-## 4. 处理跨域
+## 04. 处理跨域
 
 **① 安装依赖**
 
@@ -633,7 +637,7 @@ config.cors = {
 };
 ```
 
-## 5. 启动自定义 
+## 05. 启动自定义 
 
 **① 基本说明**
 
@@ -712,7 +716,7 @@ __http / https server 已启动，开始接受外部请求__
 
 > 注意：在自定义生命周期函数中不建议做太耗时的操作，框架会有启动的超时检测。
 
-## 6. 扩展
+## 06. 扩展
 
 **① 基本说明**
 
@@ -745,7 +749,7 @@ module.exports = class _ extends require("egg").Controller {
 > - **app/extend/helper.js** 这个路径和文件名都是不能变的，否则默认解析就会失败，除非重新解析。
 > - 实际上只要在能访问到 **<u>ctx</u>** 的地方都可调用 <u>拓展</u>。
 
-## 7. Middleware
+## 07. Middleware
 
 **① 基本说明**
 
@@ -795,7 +799,7 @@ module.exports = app => {
 };
 ```
 
-## 8. 环境配置
+## 08. 环境配置
 
 文档描述：https://eggjs.org/zh-cn/basics/env.html
 
@@ -825,7 +829,7 @@ config 配置：
 - config.preview.js 准生产环境配置
 - config.production.js 生产环境配置
 
-## 9. 定时任务
+## 09. 定时任务
 
 **① 基本说明**
 
@@ -1198,7 +1202,7 @@ http://127.0.0.1:7001/swagger-ui.html
 
 
 
-# 五、连接数据库
+# 六、连接数据库
 
 ## 1. MongoDB
 
@@ -1237,9 +1241,137 @@ config.mongoose = {
 };
 ```
 
-### 1.2. 读取
+# 七、拓展
 
+## 1. token 验证
 
+通过 `egg-jwt` 中间件实现token验证。
+
+**1）安装依赖**
+
+```shell
+$ npm install egg-jwt
+```
+
+**2）配置**
+
+*`config/plugin.js`*
+
+```json
+import { EggPlugin } from 'egg';
+
+const plugin: EggPlugin = {
+  jwt: {
+    enable: true,
+    package: 'egg-jwt',
+  },
+};
+
+export default plugin;
+```
+
+*`config/config.default.js`*
+
+```js
+config.jwt = {
+  secret: 'secret', // 秘钥
+};
+```
+
+> Tips：如果使用了ts，需要在根目录下的 *`typings/index.d.ts`* 文件里声明一个 `any` 类型，否则会类型错误： 
+
+```typescript
+import 'egg';
+
+declare module 'egg' {
+  interface Application {
+    jwt: any;
+  }
+}
+```
+
+**3）使用**
+
+在 `controller` 中使用，比如  *`app/controller/user.ts`*
+
+```js
+public async login() {
+  const { ctx, app } = this;
+  // -- 假设登录成功，生成token
+  const token = app.jwt.sign(
+    {
+      ...ctx.request.body,
+    },
+    app.config.jwt.secret,
+    {
+      expiresIn: '60m', // 时间自己定，具体可参考jsonwebtoken插件官方说
+    }
+  );
+  // -- 将生成的token返回给前端
+  ctx.body = {
+    token,
+  };
+}
+```
+
+调用接口，即可拿到token
+
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50IjoiMTczOTg4ODg2NjkiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTY1MDQyNzI3MiwiZXhwIjoxNjUwNDMwODcyfQ.qSi2eLa9Lho0F5uMrQdjUr0NNqbqiCOdHxYMrJIVbzM"
+}
+```
+
+**4）中间件**
+
+中间件可以减少代码，方便使用，比如：*`app/middleware/jwt.ts`*
+
+```typescript
+module.exports = (options: any) => {
+  return async function jwt(ctx, next) {
+    const token = ctx.request.header.authorization;
+    if (token) {
+      try {
+        // 解码token
+        const decode = ctx.app.jwt.verify(token, options.secret);
+        console.log('解析Token:', decode);
+        await next();
+      } catch ({ message }) {
+        ctx.status = 401;
+        ctx.body = {
+          msg: message,
+        };
+        return;
+      }
+    } else {
+      ctx.status = 401;
+      ctx.body = {
+        msg: 'Request headers miss ‘Authorization’ with token.',
+      };
+      return;
+    }
+  };
+};
+```
+
+**5）鉴权**
+
+在 `router` 中对要鉴权的路由进行注册：
+
+```js
+const jwt = app.middleware.jwt(app.config.jwt);
+router.get('/user/info', jwt, controller.user.info);
+```
+
+客户端在调用接口时需在 `header` 中传递 `Authorization` 参数：
+
+```json
+{
+  "Authorization": "token string"
+}
+```
+
+> Tips：此处传递 `token`，无需在前面拼接 `Bearer `
 
 
 
