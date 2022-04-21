@@ -1206,40 +1206,84 @@ http://127.0.0.1:7001/swagger-ui.html
 
 ## 1. MongoDB
 
-### 1.1 配置访问
-
-**① 安装依赖**
+**1）安装依赖**
 
 ```shell
 $ npm install egg-mongoose 
 ```
 
-**② 配置 <u>config/plugin.js</u> 和 <u>config.default.js</u>**
+[依赖包地址 >>](https://www.npmjs.com/package/egg-mongoose)
+
+**2）配置 **
+
+*`config/plugin.js`*
 
 ```js
-// config/plugin.js
-module.exports = {
-  ...
+import { EggPlugin } from 'egg';
+
+const plugin: EggPlugin = {
   mongoose: {
     enable: true,
-    package: 'egg-mongoose'
-  }
+    package: 'egg-mongoose',
+  },
 };
 
+export default plugin;
 ```
+*`config/config.default.js`*
 
 ```js
-// config.default.js
-// -- mongodb
+// -- 第1种配置方式
 config.mongoose = {
-  url: 'mongodb://127.0.0.1:27107',
-  options: {
-    user: '',
-    pass: '',
-    dbName: '',
+  url: 'mongodb://localhost:27017',
+  options: {},
+};
+// -- 第2种配置方式(推荐)
+config.mongoose = {
+  client: {
+    // url: 'mongodb://root:123@localhost:27017',
+    url: 'mongodb://localhost:27017',
+    options: {
+        useUnifiedTopology: true,
+    },
   },
 };
 ```
+
+**3）创建 Schema，生成模型**
+
+*`app/model/user.ts`*
+
+```typescript
+import { Application } from 'egg';
+
+module.exports = (app: Application) => {
+  // 引入建立连接的mongoose
+  const mongoose = app.mongoose;
+  const Schema = mongoose.Schema;
+  // 数据库表的映射
+  const UserSchema = new Schema({
+    // -- 这里主要用于关联某一张表
+    // -- ref 为关联表名字
+    xx_id: {
+      type: Schema.Types.ObjectId,
+      require: true,
+      ref: 'xx',
+    },
+    name: String,
+    age: Number,
+    sex: {
+      type: String,
+      default: '保密',
+    },
+    phone: String,
+    address: String,
+  });
+  return mongoose.model('User', UserSchema, 'user');
+};
+```
+
+[更多 Schema Types 参考这里 >>](https://www.mongodb.com/docs/realm/schemas/types/)
 
 # 七、拓展
 

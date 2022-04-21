@@ -1,3 +1,9 @@
+/*
+ * @Author: Lee
+ * @Date: 2022-04-19 16:00:30
+ * @LastEditors: Lee
+ * @LastEditTime: 2022-04-21 18:32:23
+ */
 import { EggAppConfig, EggAppInfo, PowerPartial } from 'egg';
 
 export default (appInfo: EggAppInfo) => {
@@ -18,6 +24,19 @@ export default (appInfo: EggAppInfo) => {
   // jwt
   config.jwt = {
     secret: 'secret', // 秘钥
+  };
+  // mongoose
+
+  config.mongoose = {
+    client: {
+      // url: 'mongodb://root:123@localhost:27017',
+      url: 'mongodb://localhost:27017',
+      options: {
+        dbName: 'TEST_PRO',
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      },
+    },
   };
   // the return config will combines to EggAppConfig
   return {

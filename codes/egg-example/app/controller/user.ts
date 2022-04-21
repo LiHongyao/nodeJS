@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-04-19 16:16:13
  * @LastEditors: Lee
- * @LastEditTime: 2022-04-20 14:39:22
+ * @LastEditTime: 2022-04-21 16:01:17
  */
 import { Controller } from 'egg';
 
@@ -26,7 +26,7 @@ export default class UserController extends Controller {
       },
       app.config.jwt.secret,
       {
-        expiresIn: '5s',
+        expiresIn: '24h',
       }
     );
     // -- 将生成的token返回给前端
