@@ -1212,7 +1212,10 @@ http://127.0.0.1:7001/swagger-ui.html
 $ npm install egg-mongoose 
 ```
 
-[依赖包地址 >>](https://www.npmjs.com/package/egg-mongoose)
+- [ egg-mongoose  >>](https://www.npmjs.com/package/egg-mongoose)
+
+- [mongoose 官方版 >>](https://mongoosejs.com/)
+- [mongoose 中文版（v5.0.15） >>](http://www.mongoosejs.net/)
 
 **2）配置 **
 
@@ -1233,57 +1236,91 @@ export default plugin;
 *`config/config.default.js`*
 
 ```js
-// -- 第1种配置方式
 config.mongoose = {
+  // -- 账号密码 → url: 'mongodb://账号:密码@localhost:27017',
   url: 'mongodb://localhost:27017',
-  options: {},
-};
-// -- 第2种配置方式(推荐)
-config.mongoose = {
-  client: {
-    // url: 'mongodb://root:123@localhost:27017',
-    url: 'mongodb://localhost:27017',
-    options: {
-        useUnifiedTopology: true,
-    },
+  options: {
+    dbName: 'TEST_PRO',
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
   },
 };
 ```
 
 **3）创建 Schema，生成模型**
 
-*`app/model/user.ts`*
+*`app/model/student.ts`*
 
 ```typescript
 import { Application } from 'egg';
 
 module.exports = (app: Application) => {
-  // 引入建立连接的mongoose
+  // -- 引入建立连接的mongoose
   const mongoose = app.mongoose;
   const Schema = mongoose.Schema;
-  // 数据库表的映射
-  const UserSchema = new Schema({
-    // -- 这里主要用于关联某一张表
-    // -- ref 为关联表名字
-    xx_id: {
-      type: Schema.Types.ObjectId,
-      require: true,
-      ref: 'xx',
+  // -- 数据库表的映射
+  const StudentSchema = new Schema(
+    {
+      // -- 这里主要用于关联某一张表
+      // -- ref 为关联表名字
+      // xx_id: {
+      //   type: Schema.Types.ObjectId,
+      //   required: true,
+      //   ref: 'xx',
+      // },
+      name: String,
+      age: {
+        type: Number,
+        min: 18,
+        max: 60,
+      },
+      sex: {
+        type: Number,
+        enum: [-1, 0, 1], // [未知, 女, 男]
+        default: -1,
+      },
+      phone: {
+        type: String,
+        unique: true,
+        match: [/^1[3-9][0-9]{9}$/, '手机号格式错误'],
+        required: [true, '手机号必填'],
+      },
+      address: String,
     },
-    name: String,
-    age: Number,
-    sex: {
-      type: String,
-      default: '保密',
-    },
-    phone: String,
-    address: String,
-  });
-  return mongoose.model('User', UserSchema, 'user');
+    {
+      timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }, // 生成时间
+    }
+  );
+  // -- mongoose.model(Model, StudentSchema, 'students')
+  return mongoose.model('Student', StudentSchema, 'students');
 };
+
 ```
 
 [更多 Schema Types 参考这里 >>](https://www.mongodb.com/docs/realm/schemas/types/)
+
+**4）操作**
+
+```typescript
+import { Service } from 'egg';
+
+export default class StudentService extends Service {
+  public async push() {
+    const { ctx } = this;
+    try {
+      const r = await ctx.model.Student.create({
+        ...ctx.request.body,
+      });
+      return r;
+    } catch (error) {
+      console.log(error);
+      return JSON.stringify(error);
+    }
+  }
+}
+```
+
+
 
 # 七、拓展
 

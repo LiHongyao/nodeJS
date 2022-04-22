@@ -2,10 +2,10 @@
  * @Author: Lee
  * @Date: 2022-04-19 16:00:30
  * @LastEditors: Lee
- * @LastEditTime: 2022-04-21 16:03:18
+ * @LastEditTime: 2022-04-22 10:17:01
  */
 import { Application } from 'egg';
-
+import studentRouter from './router/student';
 export default (app: Application) => {
   const { controller, router } = app;
   // -- jwt 中间件校验token
@@ -15,5 +15,5 @@ export default (app: Application) => {
   router.post('/user/login', controller.user.login);
   router.post('/user/login-wx', controller.user.loginForWx);
   // -- 学生相关
-  router.post('/student/push', controller.student.push);
+  studentRouter(app);
 };

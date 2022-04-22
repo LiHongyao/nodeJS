@@ -5,6 +5,7 @@
   },
   "rules": {
     // 禁用拖尾逗号检测
-    "comma-dangle": "off"
+    "comma-dangle": "off",
+    "array-bracket-spacing": "off"
   }
 }

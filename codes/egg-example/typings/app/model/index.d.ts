@@ -2,7 +2,6 @@
 // Do not modify this file!!!!!!!!!
 
 import 'egg';
-import ExportStudent from '../../../app/model/student';
 
 declare module 'egg' {
   interface IModel {
