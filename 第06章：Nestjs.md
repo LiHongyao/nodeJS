@@ -1,21 +1,68 @@
-[中文文档 >>](https://docs.nestjs.cn/)
+- [中文文档 >>](https://docs.nestjs.cn/)
 
-[工程目录与代码规范 >>](https://www.toimc.com/nestjs-example-project-4/)
+- [工程目录与代码规范 >>](https://www.toimc.com/nestjs-example-project-4/)
+- [Postman Tools >>](https://www.postman.com/downloads/)
+- [参考 >>](https://blog.csdn.net/lxy869718069/article/details/114028195)
 
-# 一、安装
+# 一、概述
+
+Nest 是一个用于构建高效，可扩展的 Node.js 服务器端应用程序的框架。它使用渐进式 JavaScript，内置并完全支持 TypeScript（但仍然允许开发人员使用纯 JavaScript 编写代码）并结合了 OOP（面向对象编程），FP（函数式编程）和 FRP（函数式响应编程）的元素。
+
+参照 [Node-framework-stars  >>](https://github.com/VanoDevium/node-framework-stars)，Nest 的 stars 仅次于 express。所以，非常值得学习！	
+
+# 二、安装
 
 ```shell
 $ npm i -g @nestjs/cli
-$ nest new project-names
+$ nest new project-name
 ```
 
-> **Tips：**使用 nvm 管理 node
+将会创建 `project-name` 目录， 安装 node_modules 和一些其他样板文件，并将创建一个 `src` 目录，目录中包含几个核心文件。
 
-# 二、核心
+```
+src
+ ├── app.controller.spec.ts
+ ├── app.controller.ts
+ ├── app.module.ts
+ ├── app.service.ts
+ └── main.ts
+```
 
-## 1. 控制器
+以下是这些核心文件的简要概述：
 
-创建控制器
+| #                      | 描述                                                         |
+| :--------------------- | ------------------------------------------------------------ |
+| app.controller.ts      | 带有单个路由的基本控制器示例。                               |
+| app.controller.spec.ts | 对于基本控制器的单元测试样例（可删除）                       |
+| app.module.ts          | 应用程序的根模块。                                           |
+| app.service.ts         | 带有单个方法的基本服务                                       |
+| main.ts                | 应用程序入口文件。它使用 `NestFactory` 用来创建 Nest 应用实例。 |
+
+`main.ts` 包含一个异步函数，它负责**引导**我们的应用程序：
+
+```typescript
+/* main.ts */
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+要创建一个 Nest 应用实例，我们使用了 `NestFactory` 核心类。`NestFactory` 暴露了一些静态方法用于创建应用实例。 `create()` 方法返回一个实现 `INestApplication` 接口的对象。该对象提供了一组可用的方法，我们会在后面的章节中对这些方法进行详细描述。 在上面的 `main.ts` 示例中，我们只是启动 HTTP 服务，让应用程序等待 HTTP 请求。
+
+目录结构：[最佳目录实践 >>](https://www.toimc.com/nestjs-example-project-4/#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5)
+
+# 三、核心
+
+## 控制器
+
+控制器负责处理传入的**请求**和向客户端返回**响应**。
+
+创建模块
 
 ```shell
 $ nest g co modules/hello
@@ -28,50 +75,10 @@ $ nest g s modules/hello
 *`src/modules/hello/hello.controller.ts`*
 
 ```typescript
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Headers,
-  Param,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
-import { HelloService } from './hello.service';
+import { Controller } from '@nestjs/common';
 
 @Controller('hello')
-export class HelloController {
-  constructor(
-    /** 注入HelloService服务 */
-    private readonly helloService: HelloService,
-  ) {}
-  // 查询
-  @Get()
-  fetch(@Query() { id }, @Headers('token') token) {
-    console.log(token);
-    return this.helloService.fetch(id);
-  }
-
-  // 创建
-  @Post()
-  save(@Body() { message }) {
-    return this.helloService.save(message);
-  }
-
-  // 更新
-  @Patch(':id')
-  update(@Param() { id }, @Body() { message }) {
-    return this.helloService.update(id, message);
-  }
-
-  // 删除
-  @Delete()
-  remove(@Query() { id }) {
-    return this.helloService.remove(id);
-  }
-}
+export class HelloController {}
 ```
 
 *`src/modules/hello/hello.service.ts`*
@@ -80,21 +87,7 @@ export class HelloController {
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class HelloService {
-  fetch(id: string) {
-    return `fetch with ID：${id}`;
-  }
-
-  save(message: string) {
-    return `save message：${message}`;
-  }
-  update(id: string, message: string) {
-    return `update message of id ${id}：${message}`;
-  }
-  remove(id: string) {
-    return `remove message of id ${id}`;
-  }
-}
+export class HelloService {}
 ```
 
 *`src/modules/hello/hello.module.ts`*
@@ -124,7 +117,7 @@ import { HelloModule } from './modules/hello/hello.module';
 export class AppModule {}
 ```
 
-## 2. 中间件
+## 中间件
 
 中间件是请求的第一道关卡，其作用是：
 
@@ -159,7 +152,7 @@ app.use(logger);
 > - 只有函数组件支持全局使用。
 > - 同一路由注册多个中间件的执行顺序为，先是全局中间件执行，然后是模块中间件执行，模块中的中间件顺序按照 `.apply` 中注册的顺序执行
 
-## 3. 守卫
+## 守卫
 
 守卫是第二道关卡
 
@@ -212,7 +205,7 @@ export class AuthGuard implements CanActivate {
 }
 ```
 
-## 4. 拦截器
+## 拦截器
 
 [参考官方文档 >>](https://docs.nestjs.cn/8/interceptors)
 
@@ -238,7 +231,7 @@ interface BaseResponse<T> {
 第一个部分在管道和自定义逻辑（`next.handle()`方法）之前。
 第二个部分在管道和自定义逻辑（`(next.handle()`方法）之后。
 
-## 5. 管道
+## 管道
 
 [参考官方文档 >>](https://docs.nestjs.cn/8/pipes)
 
@@ -377,7 +370,7 @@ bootstrap();
 
 
 
-## 6. 异常过滤器
+## 异常过滤器
 
 1）定义过滤器：*`src/common/filters/http-exception.filter.ts`*
 
@@ -416,45 +409,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
 app.useGlobalFilters(new HttpExceptionFilter());
 ```
 
-
-
-
-
-## 7. 执行顺序
+## 执行顺序
 
 `中间件` → `守卫` → `拦截器`
 
-# 三、扩展
+# 四、扩展
 
 ## 帮助文档
 
 ```shell
 $ nest -h
-┌───────────────┬─────────────┬──────────────────────────────────────────────┐
-│ name          │ alias       │ description                                  │
-│ application   │ application │ Generate a new application workspace         │
-│ class         │ cl          │ Generate a new class                         │
-│ configuration │ config      │ Generate a CLI configuration file            │
-│ controller    │ co          │ Generate a controller declaration            │
-│ decorator     │ d           │ Generate a custom decorator                  │
-│ filter        │ f           │ Generate a filter declaration                │
-│ gateway       │ ga          │ Generate a gateway declaration               │
-│ guard         │ gu          │ Generate a guard declaration                 │
-│ interceptor   │ in          │ Generate an interceptor declaration          │
-│ interface     │ interface   │ Generate an interface                        │
-│ middleware    │ mi          │ Generate a middleware declaration            │
-│ module        │ mo          │ Generate a module declaration                │
-│ pipe          │ pi          │ Generate a pipe declaration                  │
-│ provider      │ pr          │ Generate a provider declaration              │
-│ resolver      │ r           │ Generate a GraphQL resolver declaration      │
-│ service       │ s           │ Generate a service declaration               │
-│ library       │ lib         │ Generate a new library within a monorepo     │
-│ sub-app       │ app         │ Generate a new application within a monorepo │
-│ resource      │ res         │ Generate a new CRUD resource                 │
-└───────────────┴─────────────┴──────────────────────────────────────────────┘
 ```
-
-> **Tips：** windows 切换至 cmd
 
 示例/生成控制器，依此类推
 
@@ -520,10 +485,6 @@ export class AuthService {
 }
 ```
 
-## 执行顺序
-
-`中间件` → `守卫` →  `过滤器` → `管道` 
-
 ## 身份验证
 
 1）安装依赖
@@ -586,6 +547,150 @@ bootstrap();
 - *`@ApiParam({ name: 'id', description: '更新索引', type: Number, example: 1 })`*
 - `@ApiProperty({ name: 'age', description: 'age', type: Number })`
 
-# 四、参考
+## Mongo
 
-- <https://blog.csdn.net/lxy869718069/article/details/114028195>
+### 安装依赖
+
+```shell
+$ npm install --save @nestjs/mongoose mongoose
+$ npm install --save-dev @types/mongoose
+```
+
+### 引入 mongoose 连接模块
+
+*`app.module.ts`*
+
+```typescript
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+// -- 引入 mongoose 
+import { MongooseModule } from '@nestjs/mongoose';
+// -- 引入 user 
+import { UserModule } from './server/user/user.module';
+
+@Module({
+  // -- 链接数据库
+  imports: [MongooseModule.forRoot('mongodb://root:123@127.0.0.1:27017'), UserModule],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+```
+
+### Schema
+
+在 Mongoose 中，一切都源于 [Scheme](https://mongoosejs.com/docs/guide.html)，每个 Schema 都会映射到 MongoDB 的一个集合，并定义集合内文档的结构。Schema 被用来定义模型，而模型负责从底层创建和读取 MongoDB 的文档。
+
+Schema 可以用 NestJS 内置的装饰器来创建，或者也可以自己动手使用 Mongoose 的 [常规方式](https://mongoosejs.com/docs/guide.html)。使用装饰器来创建 Schema 会极大大减少引用并且提高代码的可读性。这里作者用的是官方推荐方式用装饰器来创建。
+
+*`src/modules/user/schemas/user.schema.ts`*
+
+```typescript
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+
+export type UserDocument = User & Document;
+
+@Schema()
+export class User extends Document {
+  @Prop({ required: true })
+  name: string;
+
+  @Prop({ min: 18, max: 50 })
+  age: number;
+
+  @Prop({ enum: [0, 1, 2], default: 0 })
+  sex: number;
+
+  @Prop({ unique: true })
+  phone: string;
+}
+
+export const UserSchema = SchemaFactory.createForClass(User);
+```
+
+### Module
+
+*`src/modules/user/user.module.ts`*
+
+```typescript
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { UserSchema } from './schemas/user.schema';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
+
+@Module({
+  imports: [
+    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+  ],
+  controllers: [UserController],
+  providers: [UserService],
+})
+export class UserModule {}
+```
+
+MongooseModule 提供了 `forFeature()` 方法来配置模块，包括定义哪些模型应该注册在当前范围中。
+
+如果你还想在另外的模块中使用这个模型，将 MongooseModule 添加到 UserModule 的 exports 部分并在其他模块中导入UserModule。
+
+这里的 `name:'User'` 为数据库表名称与 service 中注入的表名称对应两者不一样会报错。
+
+### Service
+
+*`src/modules/user/user.service.ts`*
+
+注册`Schema`后，可以使用 `@InjectModel()` 装饰器将 `User` 模型注入到 `UserService` 中：
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { CreateUserDto } from './dto/create-user.dto';
+import { User, UserDocument } from './schemas/user.schema';
+
+@Injectable()
+export class UserService {
+  // -- 注册Schema后，可以使用 @InjectModel() 装饰器将 User 模型注入到 UserService 中
+  constructor(@InjectModel('User') private userTest: Model<UserDocument>) {}
+
+  // -- 添加
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const createUser = new this.userTest(createUserDto);
+    const results = await createUser.save();
+    return results;
+  }
+}
+```
+
+### Controller
+
+*`src/modules/user/user.controller.ts`*
+
+```typescript
+import { Body, Controller, Post } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UserService } from './user.service';
+
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Post('create')
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.userService.create(createUserDto);
+  }
+}
+```
+
+### 接口校验
+
+处理这些配置我们还在 `main.ts` 文件中配置了全局路由 `app.setGlobalPrefix('api') `，意思就是所有请求前面会有一个 `/api/`。
+
+这里我们用的 `PostMan` 和 `MongoDB Compass` 官方推荐的可视化工具查看效果。
+
+
+
+
+

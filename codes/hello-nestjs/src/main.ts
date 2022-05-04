@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-04-29 15:10:52
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-02 23:42:07
+ * @LastEditTime: 2022-05-04 10:46:07
  */
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -35,6 +35,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   // -- 全局注册响应拦截器
   app.useGlobalInterceptors(new ResponseInterceptor());
+  // -- 接口前缀
+  app.setGlobalPrefix('/api');
   await app.listen(8888);
 }
 bootstrap();

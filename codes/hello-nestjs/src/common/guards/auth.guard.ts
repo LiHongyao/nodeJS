@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-02 22:42:42
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-02 23:22:18
+ * @LastEditTime: 2022-05-03 10:29:00
  * @Description: 全局权限认证守卫，用于验证用户登录
  */
 
@@ -22,6 +22,7 @@ export class AuthGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     console.log('进入全局权限守卫 >>>');
+    return true;
     // 获取请求对象
     const request = context.switchToHttp().getRequest();
     // 获取请求头中的token字段

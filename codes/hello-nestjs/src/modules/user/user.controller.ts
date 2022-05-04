@@ -1,16 +1,20 @@
+/*
+ * @Author: Lee
+ * @Date: 2022-05-02 08:43:55
+ * @LastEditors: Lee
+ * @LastEditTime: 2022-05-04 10:44:20
+ * @Description:
+ */
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { UserLoginDto } from './dto/user-login.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 
-@ApiTags('用户管理')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiOperation({ summary: '用户登录' })
-  @Post('/login')
-  login(@Body() userLoginDto: UserLoginDto) {
-    return this.userService.login(userLoginDto);
+  @Post('create')
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.userService.create(createUserDto);
   }
 }

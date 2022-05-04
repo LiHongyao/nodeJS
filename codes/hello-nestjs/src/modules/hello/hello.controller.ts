@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-01 12:29:52
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-02 10:25:49
+ * @LastEditTime: 2022-05-03 10:05:40
  */
 import {
   Body,
@@ -29,10 +29,7 @@ import { HelloService } from './hello.service';
 @ApiTags('基础示例')
 @Controller('hello')
 export class HelloController {
-  constructor(
-    /** 注入HelloService服务 */
-    private readonly helloService: HelloService,
-  ) {}
+  constructor(private readonly helloService: HelloService) {}
   // 查询
   @ApiOperation({ summary: '查询示例' })
   @ApiQuery({

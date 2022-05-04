@@ -2,23 +2,23 @@
  * @Author: Lee
  * @Date: 2022-05-02 08:44:25
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-02 09:00:16
+ * @LastEditTime: 2022-05-04 10:32:14
  */
 import { Injectable } from '@nestjs/common';
-import { UserLoginDto } from './dto/user-login.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { CreateUserDto } from './dto/create-user.dto';
+import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UserService {
-  login(userLoginDto: UserLoginDto) {
-    const { username, password } = userLoginDto;
-    if (username === 'admin' && password === '1234') {
-      return userLoginDto;
-    } else {
-      return {
-        code: 401,
-        data: null,
-        msg: '账号或密码错误',
-      };
-    }
+  // -- 注册Schema后，可以使用 @InjectModel() 装饰器将 User 模型注入到 UserService 中
+  constructor(@InjectModel('User') private userTest: Model<UserDocument>) {}
+
+  // -- 添加
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const createUser = new this.userTest(createUserDto);
+    const results = await createUser.save();
+    return results;
   }
 }
