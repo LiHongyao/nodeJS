@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-04 00:26:36
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-04 10:20:19
+ * @LastEditTime: 2022-05-04 23:52:06
  * @Description:
  */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -10,7 +10,7 @@ import { Document } from 'mongoose';
 
 export type UserDocument = User & Document;
 
-@Schema()
+@Schema({ versionKey: false })
 export class User extends Document {
   @Prop({ required: true })
   name: string;
@@ -23,6 +23,9 @@ export class User extends Document {
 
   @Prop({ unique: true })
   phone: string;
+
+  @Prop()
+  job: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
