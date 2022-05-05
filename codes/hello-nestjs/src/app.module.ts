@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-04-29 21:42:45
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-04 11:21:22
+ * @LastEditTime: 2022-05-05 16:47:36
  */
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';

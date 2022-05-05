@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-04 00:26:36
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-04 23:52:06
+ * @LastEditTime: 2022-05-05 16:49:17
  * @Description:
  */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';

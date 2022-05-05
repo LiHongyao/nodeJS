@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-02 10:29:20
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-02 23:28:59
+ * @LastEditTime: 2022-05-05 17:55:23
  * @Description: 全局响应拦截
  */
 import {
@@ -28,7 +28,6 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
     // 实现数据的遍历与转变
     return next.handle().pipe(
       map((data) => {
-        console.log('响应数据：', data);
         return {
           status: 200,
           data,

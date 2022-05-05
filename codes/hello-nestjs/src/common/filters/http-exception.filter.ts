@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-04-29 22:11:45
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-02 23:31:26
+ * @LastEditTime: 2022-05-05 16:52:32
  * @Description: 全局异常捕获过滤器
  */
 import {

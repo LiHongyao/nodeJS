@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-02 08:44:25
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-04 23:36:07
+ * @LastEditTime: 2022-05-05 17:00:17
  */
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -19,11 +19,9 @@ export class UserService {
   async create(createUserDto: CreateUserDto) {
     const createUser = new this.userTest(createUserDto);
     try {
-      const results = await createUser.save();
-      return 123;
+      return await createUser.save();
     } catch (error) {
-      console.log(error);
-      return 234;
+      console.log(error.message);
     }
   }
 }

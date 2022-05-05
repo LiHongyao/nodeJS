@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-04-29 15:10:52
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-04 10:46:07
+ * @LastEditTime: 2022-05-05 16:45:38
  */
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
