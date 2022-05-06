@@ -45,13 +45,17 @@ src
 ```typescript
 /* main.ts */
 import { NestFactory } from '@nestjs/core';
+import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 
-async function bootstrap() {
+const logger = new Logger('main.ts');
+const bootstrap = async () =>  {
   const app = await NestFactory.create(AppModule);
   await app.listen(3000);
 }
-bootstrap();
+bootstrap().then(() => {
+  logger.log('Server running at http://localhost:8888');
+});
 ```
 
 要创建一个 Nest 应用实例，我们使用了 `NestFactory` 核心类。`NestFactory` 暴露了一些静态方法用于创建应用实例。 `create()` 方法返回一个实现 `INestApplication` 接口的对象。该对象提供了一组可用的方法，我们会在后面的章节中对这些方法进行详细描述。 在上面的 `main.ts` 示例中，我们只是启动 HTTP 服务，让应用程序等待 HTTP 请求。
@@ -427,7 +431,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from './common/pipes/validation.pipe';
 
-async function bootstrap() {
+const bootstrap = async () => () {
   const app = await NestFactory.create(AppModule);
   // -- 全局注册通用验证管道
   app.useGlobalPipes(new ValidationPipe());
@@ -509,6 +513,10 @@ $ nest g co controller-names
 app.enableCors();
 ```
 
+## 日志打印
+
+
+
 ## Http
 
 1）安装依赖：
@@ -589,7 +597,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
-async function bootstrap() {
+const bootstrap = async () =>  {
   const app = await NestFactory.create(AppModule);
   // -- 允许跨域
   app.enableCors();
@@ -604,7 +612,9 @@ async function bootstrap() {
     .addServer('http://localhost:8888', '开发环境服务')
     .addServer('http://localhost:3000', '测试环境服务')
     .build();
-  const document = SwaggerModule.createDocument(app, swaggerOptions);
+  const document = SwaggerModule.createDocument(app, swaggerOptions, {
+    ignoreGlobalPrefix: false,
+  });
   // -- 访问链接
   SwaggerModule.setup('doc', app, document);
   await app.listen(8888);
@@ -630,46 +640,35 @@ $ npm install --save @nestjs/mongoose mongoose
 $ npm install --save-dev @types/mongoose
 ```
 
-### 引入 mongoose 连接模块
+### 配置
 
-*`app.module.ts`*
+输入指令，生成db模块：
 
-```typescript
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-// -- 引入 mongoose 
-import { MongooseModule } from '@nestjs/mongoose';
-// -- 引入 user 
-import { UserModule } from './server/user/user.module';
-
-@Module({
-  // -- 链接数据库
-  imports: [MongooseModule.forRoot('mongodb://root:123@127.0.0.1:27017'), UserModule],
-  controllers: [AppController],
-  providers: [AppService],
-})
-export class AppModule {}
+```shell
+$ nest g mo db
 ```
 
-### Schema
+#### Schema
 
 在 Mongoose 中，一切都源于 [Scheme](https://mongoosejs.com/docs/guide.html)，每个 Schema 都会映射到 MongoDB 的一个集合，并定义集合内文档的结构。Schema 被用来定义模型，而模型负责从底层创建和读取 MongoDB 的文档。
 
 Schema 可以用 NestJS 内置的装饰器来创建，或者也可以自己动手使用 Mongoose 的 [常规方式](https://mongoosejs.com/docs/guide.html)。使用装饰器来创建 Schema 会极大大减少引用并且提高代码的可读性。这里作者用的是官方推荐方式用装饰器来创建。
 
-*`src/modules/user/schemas/user.schema.ts`*
+*`src/db/schemas/user.schema.ts`*
 
 ```typescript
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-
-export type UserDocument = User & Document;
-
-@Schema()
+// -- @Schema 装饰器标记一个类作为Schema 定义
+// -- @Prop 装饰器在文档中定义了一个属性
+@Schema({ versionKey: false })
 export class User extends Document {
-  @Prop({ required: true })
+  @Prop()
   name: string;
+
+  @Prop({ unique: true, required: true })
+  phone: string;
+
+  @Prop({ required: true })
+  password: string;
 
   @Prop({ min: 18, max: 50 })
   age: number;
@@ -677,39 +676,68 @@ export class User extends Document {
   @Prop({ enum: [0, 1, 2], default: 0 })
   sex: number;
 
-  @Prop({ unique: true })
-  phone: string;
+  @Prop()
+  job: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 ```
 
-### Module
+更多 Scheme 选项，[参照这里 >>](https://mongoosejs.com/docs/guide.html#options)
 
-*`src/modules/user/user.module.ts`*
+#### Module
+
+*`src/db/db.module.ts`*
 
 ```typescript
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from './schemas/user.schema';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
 
+const MONGO_MODULES = MongooseModule.forFeature([
+  {
+    name: 'USER_MODEL',
+    schema: UserSchema,
+    collection: 'user',
+  },
+]);
+
+@Global()
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
-  ],
-  controllers: [UserController],
-  providers: [UserService],
+  imports: [MongooseModule.forRoot('mongodb://:123@127.0.0.1:27017/DB-TEST'), MONGO_MODULES],
+  exports: [MONGO_MODULES],
 })
-export class UserModule {}
+export class DbModule {}
 ```
 
 MongooseModule 提供了 `forFeature()` 方法来配置模块，包括定义哪些模型应该注册在当前范围中。
 
-如果你还想在另外的模块中使用这个模型，将 MongooseModule 添加到 UserModule 的 exports 部分并在其他模块中导入UserModule。
+配置完之后，我们还需要在 *`app.module.ts`* 导入 `DbModule`：
 
-这里的 `name:'User'` 为数据库表名称与 service 中注入的表名称对应两者不一样会报错。
+```typescript
+import { Module } from '@nestjs/common';
+import { DbModule } from './db/db.module';
+
+@Module({
+  imports: [
+    DbModule
+  ],
+  controllers: [],
+})
+export class AppModule {}
+```
+
+### 应用
+
+为了更好的演示示例，我们构建一个 `user` 模块：
+
+```shell
+$ nest g mo modules/user
+$ nest g co modules/user
+$ nest g s modules/user
+```
+
+
 
 ### Service
 
@@ -758,11 +786,7 @@ export class UserController {
 }
 ```
 
-### 接口校验
 
-处理这些配置我们还在 `main.ts` 文件中配置了全局路由 `app.setGlobalPrefix('api') `，意思就是所有请求前面会有一个 `/api/`。
-
-这里我们用的 `PostMan` 和 `MongoDB Compass` 官方推荐的可视化工具查看效果。
 
 
 
