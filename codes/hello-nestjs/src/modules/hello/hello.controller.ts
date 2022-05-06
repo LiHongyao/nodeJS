@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-01 12:29:52
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-05 17:50:06
+ * @LastEditTime: 2022-05-06 13:47:42
  */
 import {
   Body,
@@ -35,15 +35,15 @@ export class HelloController {
     return this.helloService.save(data);
   }
 
-  // 更新
+  // -- 更新
 
   @Patch('update/:id')
   update(@Param('id', new ParseIntPipe()) id, @Body() data: CreateUserDto) {
     return this.helloService.update(id, data);
   }
 
-  // 删除
-  @Delete()
+  // -- 删除
+  @Delete('remove')
   remove(@Query() { id }) {
     return this.helloService.remove(id);
   }

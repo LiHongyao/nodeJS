@@ -74,22 +74,93 @@ $ nest g s modules/hello
 
 > **Tips：**这里我们在 *`modules`* 目录下新建了 *`hello`* 模块，包括 *`controller`*、*`module`* 和 *`service`*。
 
-*`src/modules/hello/hello.controller.ts`*
+*`src/modules/hello/dto/create-user.dto.ts`*
 
 ```typescript
-import { Controller } from '@nestjs/common';
-
-@Controller('hello')
-export class HelloController {}
+export class CreateUserDto {
+  name: string;
+  age: number;
+  sex: string;
+  job: string;
+}
 ```
+
+> **Tips：**这个文件的作用主要用于后期的管道验证，这里你可以理解为类型声明。
 
 *`src/modules/hello/hello.service.ts`*
 
 ```typescript
 import { Injectable } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
-export class HelloService {}
+export class HelloService {
+  fetch(id: string) {
+    return `查询信息：ID/${id}`;
+  }
+
+  save(data: CreateUserDto) {
+    return data;
+  }
+
+  update(id: string, data: CreateUserDto) {
+    console.log(data);
+    return `更新数据ID:${id},${JSON.stringify(data)}`;
+  }
+
+  remove(id: string) {
+    return `删除数据ID：${id}`;
+  }
+}
+```
+
+*`src/modules/hello/hello.controller.ts`*
+
+```typescript
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { HelloService } from './hello.service';
+
+@Controller('hello')
+export class HelloController {
+  constructor(private readonly helloService: HelloService) {}
+  // -- 查询
+  @Get('info')
+  fetch(@Query() { id }, @Headers('token') token) {
+    console.log(`头部参数 token：${token}`);
+    return this.helloService.fetch(id);
+  }
+
+  // -- 新建
+  @Post('create')
+  save(@Body() data: CreateUserDto) {
+    return this.helloService.save(data);
+  }
+
+  // -- 更新
+
+  @Patch('update/:id')
+  update(@Param('id', new ParseIntPipe()) id, @Body() data: CreateUserDto) {
+    return this.helloService.update(id, data);
+  }
+
+  // -- 删除
+  @Delete('remove')
+  remove(@Query() { id }) {
+    return this.helloService.remove(id);
+  }
+}
 ```
 
 *`src/modules/hello/hello.module.ts`*
@@ -137,8 +208,9 @@ export class AppModule {}
 import { Request, Response, NextFunction } from 'express';
 
 export function logger(req: Request, res: Response, next: NextFunction) {
-  const { method, path } = req;
-  console.log(`${method} ${path}`);
+  console.log('进入全局中间件 >>>');
+  const { method, path, ip } = req;
+  console.log(`${ip} ${method} ${path}`);
   next();
 }
 ```
@@ -487,7 +559,7 @@ export class AuthService {
 }
 ```
 
-## 身份验证
+## jwt验证
 
 1）安装依赖
 

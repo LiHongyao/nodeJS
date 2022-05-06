@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-05 16:25:22
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-05 18:10:43
+ * @LastEditTime: 2022-05-06 13:48:20
  * @Description:
  */
 import { Injectable } from '@nestjs/common';
@@ -17,10 +17,13 @@ export class HelloService {
   save(data: CreateUserDto) {
     return data;
   }
+
   update(id: string, data: CreateUserDto) {
-    return `更新数据ID:${id},${data}`;
+    console.log(data);
+    return `更新数据ID:${id},${JSON.stringify(data)}`;
   }
+
   remove(id: string) {
-    return `remove message of id ${id}`;
+    return `删除数据ID：${id}`;
   }
 }
