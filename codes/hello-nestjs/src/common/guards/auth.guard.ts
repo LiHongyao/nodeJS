@@ -2,26 +2,19 @@
  * @Author: Lee
  * @Date: 2022-05-02 22:42:42
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-03 10:29:00
+ * @LastEditTime: 2022-05-07 14:25:41
  * @Description: 全局权限认证守卫，用于验证用户登录
  */
 
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
+const logger = new Logger('auth.guard');
 @Injectable()
 export class AuthGuard implements CanActivate {
   private readonly whiteList = ['/user/login'];
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    console.log('进入全局权限守卫 >>>');
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+    logger.log('进入全局权限守卫 >>>');
     return true;
     // 获取请求对象
     const request = context.switchToHttp().getRequest();
@@ -37,16 +30,10 @@ export class AuthGuard implements CanActivate {
         // -- 验证逻辑
         return true;
       } catch (error) {
-        throw new HttpException(
-          '没有授权访问，请先登录',
-          HttpStatus.UNAUTHORIZED,
-        );
+        throw new HttpException('没有授权访问，请先登录', HttpStatus.UNAUTHORIZED);
       }
     } else {
-      throw new HttpException(
-        '没有授权访问，请先登录',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new HttpException('没有授权访问，请先登录', HttpStatus.UNAUTHORIZED);
     }
   }
 }

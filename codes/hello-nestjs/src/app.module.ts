@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-06 19:39:37
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-06 23:34:24
+ * @LastEditTime: 2022-05-07 10:58:04
  * @Description:
  */
 /*
@@ -12,20 +12,11 @@
  * @LastEditTime: 2022-05-05 16:47:36
  */
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { DbModule } from './db/db.module';
-import { UserModule } from './modules/user/user.module';
+import { DbModule } from './common/db/db.module';
 import * as Modules from './modules';
 
 @Module({
-  imports: [
-    // -- 功能模块
-    ...Object.values(Modules),
-    // -- mongodb
-    MongooseModule.forRoot('mongodb://lee:123@127.0.0.1:27017/DB-TEST'),
-    DbModule,
-    UserModule,
-  ],
+  imports: [...Object.values(Modules), DbModule],
   controllers: [],
 })
 export class AppModule {}

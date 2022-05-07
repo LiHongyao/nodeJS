@@ -2,23 +2,21 @@
  * @Author: Lee
  * @Date: 2022-05-02 09:27:14
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-05 17:01:47
+ * @LastEditTime: 2022-05-07 14:26:10
  * @Description: 全局dto验证
  */
-import {
-  ArgumentMetadata,
-  BadRequestException,
-  Injectable,
-  PipeTransform,
-} from '@nestjs/common';
+import { ArgumentMetadata, BadRequestException, Injectable, Logger, PipeTransform } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
+
+const logger = new Logger('validation.pipe');
+
 @Injectable()
 export class ValidationPipe implements PipeTransform<any> {
   // -- value：当前处理参数
   // -- metatype：属性的元类型
   async transform(value: any, { metatype }: ArgumentMetadata) {
-    console.log('进入全局管道 >>>');
+    logger.log('进入全局管道 >>>');
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }

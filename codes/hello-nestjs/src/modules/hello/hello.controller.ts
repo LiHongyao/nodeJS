@@ -2,11 +2,11 @@
  * @Author: Lee
  * @Date: 2022-05-01 12:29:52
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-06 20:24:08
+ * @LastEditTime: 2022-05-07 10:23:24
  */
 import { Body, Controller, Delete, Get, Headers, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
 import { HelloService } from './hello.service';
 
 @ApiTags('基础示例')

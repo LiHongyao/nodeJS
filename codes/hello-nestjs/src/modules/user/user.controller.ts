@@ -2,15 +2,25 @@
  * @Author: Lee
  * @Date: 2022-05-06 23:36:09
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-06 23:37:28
+ * @LastEditTime: 2022-05-07 17:50:27
  * @Description:
  */
-import { Controller } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from 'src/db/schemas/user.schema';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UserService } from './user.service';
 
+@ApiTags('用户')
+@ApiBearerAuth('jwt')
 @Controller('user')
 export class UserController {
-  constructor(@InjectModel('USER_MODULE') private readonly userModel: Model<User>) {}
+  constructor(private readonly userServier: UserService) {}
+
+  @ApiOperation({ summary: '测试守卫' })
+  @Get('hello')
+  // -- jwt 守卫
+  @UseGuards(AuthGuard('jwt'))
+  hello() {
+    return this.userServier.hello();
+  }
 }

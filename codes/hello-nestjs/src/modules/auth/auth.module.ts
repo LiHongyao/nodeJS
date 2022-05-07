@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-03 11:02:08
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-06 18:16:26
+ * @LastEditTime: 2022-05-07 16:36:07
  * @Description:
  */
 import { Module } from '@nestjs/common';
@@ -11,6 +11,7 @@ import { AuthService } from './auth.servce';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT_CONSTANT } from './jwt.constant';
 import { JwtStrategy } from './jwt.strategy';
+import { UserService } from 'src/modules/user/user.service';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { JwtStrategy } from './jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy /** 引入jwt策略 */],
+  providers: [AuthService, UserService, JwtStrategy /** 引入jwt策略 */],
 })
 export class AuthModule {}

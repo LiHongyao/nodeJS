@@ -2,11 +2,11 @@
  * @Author: Lee
  * @Date: 2022-05-05 16:25:22
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-06 13:48:20
+ * @LastEditTime: 2022-05-07 10:35:27
  * @Description:
  */
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
 
 @Injectable()
 export class HelloService {

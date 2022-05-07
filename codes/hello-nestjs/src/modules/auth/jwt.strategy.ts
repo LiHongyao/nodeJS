@@ -2,13 +2,14 @@
  * @Author: Lee
  * @Date: 2022-05-06 18:00:56
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-06 18:01:31
- * @Description:
+ * @LastEditTime: 2022-05-07 17:27:20
+ * @Description: jwt 策略
  */
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { JWT_CONSTANT } from './jwt.constant';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -20,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
-    return { userId: payload.sub, username: payload.username };
+  async validate(payload: CreateUserDto) {
+    return { phone: payload.phone };
   }
 }

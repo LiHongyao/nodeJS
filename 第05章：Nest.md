@@ -62,6 +62,28 @@ bootstrap().then(() => {
 
 目录结构：[最佳目录实践 >>](https://www.toimc.com/nestjs-example-project-4/#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5)
 
+```ini
+nest-proj
+.
+├── node_moddules
+├── src
+│   ├─ common               # 全局公共模块
+│   │   ├── db              # 数据库
+│   │   ├── decorators      # 装饰器
+│   │   ├── dto             # 验证
+│   │   ├── filters         # 过滤器
+│   │   ├── guards          # 守卫
+│   │   ├── interceptors    # 拦截器
+│   │   ├── interfaces      # 类型定义
+│   │   ├── middleware      # 中间件
+│   │   └── pipes           # 管道
+│   ├─ modules              # 业务模块
+│   ├─ utils                # 工具函数
+│   ├─ app.module.ts    
+│   └── main.ts   
+└── package.json
+```
+
 # 三、核心
 
 ## 控制器
@@ -78,7 +100,7 @@ $ nest g s modules/hello
 
 > **Tips：**这里我们在 *`modules`* 目录下新建了 *`hello`* 模块，包括 *`controller`*、*`module`* 和 *`service`*。
 
-*`src/modules/hello/dto/create-user.dto.ts`*
+*`src/common/dto/req/create-user.dto.ts`*
 
 ```typescript
 export class CreateUserDto {
@@ -204,17 +226,17 @@ export class AppModule {}
 - 调用堆栈中的下一个中间件函数。
 - 如果当前的中间件函数没有结束请求-响应周期, 它必须调用 `next()` 将控制传递给下一个中间件函数。否则, 请求将被挂起。
 
-本示例主要讲解 `logger` 中间件的使用：
+本示例主要讲解 `visitor` 中间件的使用：
 
-1）定义中间件：*`src/common/middleware/logger.middleware.ts`*
+1）定义中间件：*`src/common/middleware/visitor.middleware.ts`*
 
 ```typescript
+import { Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-
-export function logger(req: Request, res: Response, next: NextFunction) {
-  console.log('进入全局中间件 >>>');
+const logger = new Logger('logger.middleware');
+export function visitor(req: Request, res: Response, next: NextFunction) {
   const { method, path, ip } = req;
-  console.log(`${ip} ${method} ${path}`);
+  logger.log(`访问者信息：${ip} ${method} ${path}`);
   next();
 }
 ```
@@ -222,13 +244,14 @@ export function logger(req: Request, res: Response, next: NextFunction) {
 2）全局使用
 
 ```typescript
-app.use(logger);
+app.use(visitor);
 ```
 
 > **Tips：**
 >
 > - 只有函数组件支持全局使用。
 > - 同一路由注册多个中间件的执行顺序为，先是全局中间件执行，然后是模块中间件执行，模块中的中间件顺序按照 `.apply` 中注册的顺序执行
+> - 模块中使用可参照 [官方示例 >>](https://docs.nestjs.cn/8/middlewares?id=%e5%ba%94%e7%94%a8%e4%b8%ad%e9%97%b4%e4%bb%b6)
 
 ## 守卫
 
@@ -576,6 +599,50 @@ $ npm install --save @nestjs/passport passport passport-local
 $ npm install --save-dev @types/passport-local
 ```
 
+2）构建 `auth` 模块
+
+```shell
+$ nest g mo modules/auth
+$ nest g co modules/auth
+$ nest g s  modules/auth
+```
+
+3）jwt 常量：*`src/moudles/auth/jwt.constant.ts`*
+
+```typescript
+export const JWT_CONSTANT = {
+  // -- 自定义秘钥
+  secret: 'jwt_secret',
+};
+```
+
+4）jwt 策略：*`src/modules/auth/jwt.strategy.ts`*
+
+```typescript
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { PassportStrategy } from '@nestjs/passport';
+import { Injectable } from '@nestjs/common';
+import { JWT_CONSTANT } from './jwt.constant';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor() {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: JWT_CONSTANT.secret,
+    });
+  }
+
+  async validate(payload: CreateUserDto) {
+    return { phone: payload.phone };
+  }
+}
+```
+
+
+
 ## Swagger
 
 [参考指南 >>](https://docs.nestjs.cn/8/openapi)
@@ -645,7 +712,7 @@ $ npm install --save-dev @types/mongoose
 输入指令，生成db模块：
 
 ```shell
-$ nest g mo db
+$ nest g mo common/db
 ```
 
 #### Schema
@@ -654,12 +721,17 @@ $ nest g mo db
 
 Schema 可以用 NestJS 内置的装饰器来创建，或者也可以自己动手使用 Mongoose 的 [常规方式](https://mongoosejs.com/docs/guide.html)。使用装饰器来创建 Schema 会极大大减少引用并且提高代码的可读性。这里作者用的是官方推荐方式用装饰器来创建。
 
-*`src/db/schemas/user.schema.ts`*
+*`src/common/db/schemas/user.schema.ts`*
 
 ```typescript
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+
+export type UserDocument = User & Document;
+
 // -- @Schema 装饰器标记一个类作为Schema 定义
 // -- @Prop 装饰器在文档中定义了一个属性
-@Schema({ versionKey: false })
+@Schema({ versionKey: false, collection: 'users' })
 export class User extends Document {
   @Prop()
   name: string;
@@ -678,6 +750,9 @@ export class User extends Document {
 
   @Prop()
   job: string;
+
+  @Prop()
+  salt?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
@@ -687,25 +762,24 @@ export const UserSchema = SchemaFactory.createForClass(User);
 
 #### Module
 
-*`src/db/db.module.ts`*
+*`src/common/db/db.module.ts`*
 
 ```typescript
 import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from './schemas/user.schema';
 
-const MONGO_MODULES = MongooseModule.forFeature([
+const MONGO_MODELS = MongooseModule.forFeature([
   {
     name: 'USER_MODEL',
     schema: UserSchema,
-    collection: 'user',
   },
 ]);
 
 @Global()
 @Module({
-  imports: [MongooseModule.forRoot('mongodb://:123@127.0.0.1:27017/DB-TEST'), MONGO_MODULES],
-  exports: [MONGO_MODULES],
+  imports: [MongooseModule.forRoot('mongodb://lee:123@127.0.0.1:27017/DB-TEST'), MONGO_MODELS],
+  exports: [MONGO_MODELS],
 })
 export class DbModule {}
 ```
@@ -729,7 +803,7 @@ export class AppModule {}
 
 ### 应用
 
-为了更好的演示示例，我们构建一个 `user` 模块：
+为了更好的演示示例，我们构建一个 `user` 模块，并实现注册功能：
 
 ```shell
 $ nest g mo modules/user
@@ -737,58 +811,173 @@ $ nest g co modules/user
 $ nest g s modules/user
 ```
 
-
-
-### Service
-
-*`src/modules/user/user.service.ts`*
-
-注册`Schema`后，可以使用 `@InjectModel()` 装饰器将 `User` 模型注入到 `UserService` 中：
+用户注册需用到密码，通常密码我们需要加密处理，先创建一个用于加密的工具函数：*`src/utils/encription.ts`*
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { CreateUserDto } from './dto/create-user.dto';
-import { User, UserDocument } from './schemas/user.schema';
+import * as crypto from 'crypto';
+
+/**
+ * 获取盐
+ * @returns
+ */
+export function getSalt() {
+  return crypto.randomBytes(16).toString('base64');
+}
+
+/**
+ * 加密
+ * @param password
+ * @param salt
+ * @returns
+ */
+export function encript(password: string, salt: string) {
+  return crypto.pbkdf2Sync(password, salt, 10000, 16, 'sha256').toString('base64');
+}
+```
+
+然后在中间件中对前端传入的密码加密处理：*`hash-password.middleware`*
+
+```typescript
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+import { encript, getSalt } from 'src/utils/encription';
 
 @Injectable()
-export class UserService {
-  // -- 注册Schema后，可以使用 @InjectModel() 装饰器将 User 模型注入到 UserService 中
-  constructor(@InjectModel('User') private userTest: Model<UserDocument>) {}
-
-  // -- 添加
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const createUser = new this.userTest(createUserDto);
-    const results = await createUser.save();
-    return results;
+export class HashPasswordMiddleware implements NestMiddleware {
+  use(req: Request, res: Response, next: NextFunction) {
+    // -- 获取请求体中的密码
+    const userPassword = req.body['password'];
+    if (userPassword) {
+      const salt = getSalt();
+      // -- 将加密后的密码替换
+      req.body['password'] = encript(userPassword, salt);
+      // -- 存储盐值，用于登陆时解密
+      req.body['salt'] = salt;
+    }
+    next();
   }
 }
 ```
 
-### Controller
+继续后续操作...
+
+*`src/common/interfaces/response.interface.ts`*
+
+```typescript
+export interface IResponse {
+  code: number;
+  msg: any;
+  data: any;
+}
+```
+
+*`src/common/dto/req/create-user.dto.ts`*
+
+```typescript
+import { ApiProperty } from '@nestjs/swagger';
+
+export class CreateUserDto {
+  @ApiProperty({ description: '姓名' })
+  name: string;
+  @ApiProperty({ description: '手机号' })
+  phone: string;
+  @ApiProperty({ description: '密码' })
+  password: string;
+  @ApiProperty({ description: '年龄' })
+  age: number;
+  @ApiProperty({ description: '性别' })
+  sex: number;
+  @ApiProperty({ description: '工作' })
+  job: string;
+}
+```
+
+*`src/modules/user/user.service.ts`*
+
+```typescript
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from 'src/common/db/schemas/user.schema';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
+import { IResponse } from 'src/common/interfaces/response.interface';
+
+const logger = new Logger('user.service');
+
+@Injectable()
+export class UserService {
+  private response: IResponse;
+  constructor(@InjectModel('USER_MODEL') private readonly userModel: Model<User>) {}
+
+  // -- 注册
+  async regist(user: CreateUserDto) {
+    return await this.findOne(user.phone)
+      .then((res) => {
+        // -- 如果查到了用户，则表示用户已注册
+        if (res.length !== 0) {
+          this.response = { code: 1, data: null, msg: '当前手机号已注册' };
+          return this.response;
+        }
+      })
+      .then(async () => {
+        // -- 如果没有查到用户，则表示用户未注册
+        try {
+          const createUser = new this.userModel(user);
+          await createUser.save();
+          this.response = { code: 0, msg: '注册成功', data: null };
+          return this.response;
+        } catch (error) {
+          this.response = { code: 2, data: null, msg: '注册失败，失败原因：' + error };
+          return this.response;
+        }
+      });
+  }
+
+  // -- 通过手机号查找用户
+  async findOne(phone: string) {
+    return await this.userModel.find({ phone });
+  }
+}
+```
 
 *`src/modules/user/user.controller.ts`*
 
 ```typescript
 import { Body, Controller, Post } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userServier: UserService) {}
 
-  @Post('create')
-  async create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @Post('regist')
+  async registUser(@Body() userDto: CreateUserDto) {
+    return await this.userServier.regist(userDto);
   }
 }
 ```
 
+*`src/modules/user/user.module.ts`*
 
+```typescript
+import { Module } from '@nestjs/common';
+import { UserService } from './user.service';
+import { UserController } from './user.controller';
+import { MiddlewareConsumer } from '@nestjs/common/interfaces';
+import { HashPasswordMiddleware } from 'src/common/middleware/hash-password.middleware';
 
-
+@Module({
+  imports: [],
+  providers: [UserService],
+  controllers: [UserController],
+})
+export class UserModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HashPasswordMiddleware).forRoutes('user/regist');
+  }
+}
+```
 
 
 

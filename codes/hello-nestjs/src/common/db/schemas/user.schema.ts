@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-04 00:26:36
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-06 23:19:07
+ * @LastEditTime: 2022-05-07 13:51:37
  * @Description:
  */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -12,7 +12,7 @@ export type UserDocument = User & Document;
 
 // -- @Schema 装饰器标记一个类作为Schema 定义
 // -- @Prop 装饰器在文档中定义了一个属性
-@Schema({ versionKey: false })
+@Schema({ versionKey: false, collection: 'users' })
 export class User extends Document {
   @Prop()
   name: string;
@@ -31,6 +31,9 @@ export class User extends Document {
 
   @Prop()
   job: string;
+
+  @Prop()
+  salt?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
