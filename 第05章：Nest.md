@@ -84,21 +84,63 @@ nest-proj
 └── package.json
 ```
 
-# 三、核心
+# 三、概述
+
+开始之前，我们先来了解一下 nestjs 的执行流程：
+
+`客户端发起请求` → `中间件` → `守卫` → `拦截器`
+
+## 模块
+
+[模块](https://docs.nestjs.cn/8/modules) 是具有 `@Module()` 装饰器的类。 `@Module()` 装饰器提供了元数据，Nest 用它来组织应用程序结构。
+
+`@module()` 装饰器接受一个描述模块属性的对象：
+
+| Tags        | DESC                                 |
+| ----------- | ------------------------------------ |
+| providers   | 提供者，并且可以至少在整个模块中共享 |
+| controllers | 控制器                               |
+| imports     | 导入模块                             |
+| exports     | 导出模块                             |
+
+通常，一个模块包含 `service`、`module`、`controller`，其中：
+
+- `module`：负责封装模块，包括导入、导出、控制器以及注入提供者。
+- `service`：负责具体的业务逻辑实现。
+- `controller`：负责路由/参数
+
+全局模块通过 `@Global` 装饰器定义。
 
 ## 控制器
 
-控制器负责处理传入的**请求**和向客户端返回**响应**。
+[控制器](https://docs.nestjs.cn/8/controllers) 使用 `@Controller()` 装饰器来定义，负责处理传入的**请求**和向客户端返回**响应**，简单理解就是负责路由处理。这里主要介绍控制器的基础使用，更多细节参照官网。
 
 创建模块
 
 ```shell
-$ nest g co modules/hello
-$ nest g mo modules/hello
-$ nest g s modules/hello
+$ nest g co modules/hello  # 生成控制器
+$ nest g mo modules/hello  # 生成模块
+$ nest g s modules/hello   # 生成服务（提供者）
 ```
 
 > **Tips：**这里我们在 *`modules`* 目录下新建了 *`hello`* 模块，包括 *`controller`*、*`module`* 和 *`service`*。
+
+定义响应数据的格式，这里我们统一定义：
+
+*`src/common/interfaces/response.interface.ts`*
+
+```typescript
+export interface IResponse<T = any> {
+  code: number /** 状态码 */;
+  data?: T /** 响应数据 */;
+  msg?: string /** 提示信息 */;
+  page?: {
+    pageNo: number;
+    pages: number;
+    total: number;
+  };
+}
+```
 
 *`src/common/dto/req/create-user.dto.ts`*
 
@@ -116,26 +158,46 @@ export class CreateUserDto {
 *`src/modules/hello/hello.service.ts`*
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
+import { IResponse } from 'src/common/interfaces/response.interface';
+
+const logger = new Logger('hello.service');
 
 @Injectable()
 export class HelloService {
-  fetch(id: string) {
-    return `查询信息：ID/${id}`;
+  private response: IResponse;
+
+  async fetch(id: string) {
+    this.response = {
+      code: 0,
+      data: `查询ID：${id}`,
+    };
+    return this.response;
   }
 
-  save(data: CreateUserDto) {
-    return data;
+  async save(data: CreateUserDto) {
+    this.response = {
+      code: 0,
+      data,
+    };
+    return this.response;
   }
 
-  update(id: string, data: CreateUserDto) {
-    console.log(data);
-    return `更新数据ID:${id},${JSON.stringify(data)}`;
+  async update(id: string, data: CreateUserDto) {
+    logger.log('更新数据：', id, data);
+    this.response = {
+      code: 0,
+    };
+    return this.response;
   }
 
-  remove(id: string) {
-    return `删除数据ID：${id}`;
+  async remove(id: number) {
+    logger.log(`删除数据：${id}`);
+    this.response = {
+      code: 0,
+    };
+    return this.response;
   }
 }
 ```
@@ -143,47 +205,46 @@ export class HelloService {
 *`src/modules/hello/hello.controller.ts`*
 
 ```typescript
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Headers,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Body, Controller, Delete, Get, Headers, Logger, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
 import { HelloService } from './hello.service';
 
+const logger = new Logger('hello.controller');
+
+@ApiTags('基础示例')
 @Controller('hello')
 export class HelloController {
   constructor(private readonly helloService: HelloService) {}
   // -- 查询
+  @ApiOperation({ summary: '查询数据' })
+  @ApiQuery({ name: 'id', description: '数据ID', type: Number, example: 1, required: false })
   @Get('info')
   fetch(@Query() { id }, @Headers('token') token) {
-    console.log(`头部参数 token：${token}`);
+    logger.log(`头部参数 token：${token}`);
     return this.helloService.fetch(id);
   }
 
   // -- 新建
+  @ApiOperation({ summary: '新增数据' })
   @Post('create')
   save(@Body() data: CreateUserDto) {
     return this.helloService.save(data);
   }
 
   // -- 更新
-
+  @ApiOperation({ summary: '更新数据' })
+  @ApiQuery({ name: 'id', description: '数据ID', type: Number, example: 1, required: false })
   @Patch('update/:id')
   update(@Param('id', new ParseIntPipe()) id, @Body() data: CreateUserDto) {
     return this.helloService.update(id, data);
   }
 
   // -- 删除
+  @ApiOperation({ summary: '删除数据' })
+  @ApiQuery({ name: 'id', description: '数据ID', type: Number, example: 1, required: false })
   @Delete('remove')
-  remove(@Query() { id }) {
+  remove(@Query('id', new ParseIntPipe()) id) {
     return this.helloService.remove(id);
   }
 }
@@ -216,7 +277,11 @@ import { HelloModule } from './modules/hello/hello.module';
 export class AppModule {}
 ```
 
+> **Tips：** `controller` 代码基本上是固定模板，你的业务逻辑应该放置在 `service` 中处理。
+
 ## 中间件
+
+[中间件](https://docs.nestjs.cn/8/middlewares) 是在路由处理程序 **之前** 调用的函数。 中间件函数可以访问请求和响应对象，以及应用程序请求响应周期中的 `next()` 中间件函数。 `next()` 中间件函数通常由名为 `next` 的变量表示。
 
 中间件是请求的第一道关卡，其作用是：
 
@@ -226,7 +291,77 @@ export class AppModule {}
 - 调用堆栈中的下一个中间件函数。
 - 如果当前的中间件函数没有结束请求-响应周期, 它必须调用 `next()` 将控制传递给下一个中间件函数。否则, 请求将被挂起。
 
-本示例主要讲解 `visitor` 中间件的使用：
+### 示例1：加密中间件
+
+首先我们定义一个工具函数，用于加密前端传递过来的密码：
+
+*`src/utils/encription.ts`*
+
+```typescript
+import * as crypto from 'crypto';
+
+// -- 获取盐
+export function getSalt() {
+  return crypto.randomBytes(16).toString('base64');
+}
+
+// -- 加密
+export function encript(password: string, salt: string) {
+  return crypto.pbkdf2Sync(password, salt, 10000, 16, 'sha256').toString('base64');
+}
+```
+
+然后我们定义中间件文件：
+
+*`src/common/middleware/hash-password.middleware.ts`*
+
+```typescript
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+import { encript, getSalt } from 'src/utils/encription';
+
+@Injectable()
+export class HashPasswordMiddleware implements NestMiddleware {
+  use(req: Request, res: Response, next: NextFunction) {
+    // -- 获取请求体中的密码
+    const userPassword = req.body['password'];
+    if (userPassword) {
+      const salt = getSalt();
+      // -- 将加密后的密码替换
+      req.body['password'] = encript(userPassword, salt);
+      // -- 存储盐值，验证登录时我们将客户端传递过来的密码用这个盐值加密并比对存储的加密密码用于判断是否登录成功
+      req.body['salt'] = salt;
+    }
+    next();
+  }
+}
+```
+
+接下来我们在 *`src/modules/auth/auth.module.ts`* 文件中引入中间件，并让其只在 *`auth/regist`* 路由中生效：
+
+```typescript
+import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.servce';
+import { HashPasswordMiddleware } from 'src/common/middleware/hash-password.middleware';
+
+@Module({
+  imports: [],
+  controllers: [AuthController],
+  providers: [AuthService],
+})
+export class AuthModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HashPasswordMiddleware).forRoutes('auth/regist');
+  }
+}
+```
+
+当你在 *`auth/regist`* 路由中获取请求体的参数时，将会取到在中间件 `HashPasswordMiddleware` 加密后的密码和盐，通常你应该将其存入数据库中，当用户执行登录时，首先从数据库读取用户数据，然后将客户端传递过来的密码通过注册时存储的盐值进行加密然后和注册时存储在数据库中的加密后的密码进行比较来验证是否登录成功，后续的代码这里不会贴出示例，只是提供一个思路，你可以在 **jwt验证** 章节查看具体代码。
+
+### 示例2：全局 visitor 中间件
+
+本示例主要讲解 `visitor` 中间件的使用，该中间件主要用于打印访问者信息：
 
 1）定义中间件：*`src/common/middleware/visitor.middleware.ts`*
 
@@ -362,15 +497,18 @@ update(@Param('id', new ParseIntPipe()) id, @Body() { message }) {
 $ npm i --save class-validator class-transformer
 ```
 
-2）在dto文件中校验，如：*`src/modules/user/dto/user-login.dto.ts`*
+2）在dto文件中校验，如：*`src/common/dto/req/login.dto.ts`*
 
 ```typescript
-import { MinLength, IsNotEmpty } from 'class-validator';
-export class UserLoginDto {
-  @IsNotEmpty({ message: '账号不能为空' })
-  username: string;
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
 
-  @MinLength(4, { message: '密码长度不能小于4位数' })
+export class LoginDto {
+  @ApiProperty({ description: '手机号', example: '17398888669' })
+  @IsNotEmpty({ message: '手机号不能为空' })
+  phone: string;
+
+  @ApiProperty({ description: '密码', example: '123456' })
   @IsNotEmpty({ message: '密码不能为空' })
   password: string;
 }
@@ -382,8 +520,8 @@ export class UserLoginDto {
 
   ```typescript
   @Post('/login')
-  login(@Body(new ValidationPipe()) userLoginDto: UserLoginDto) {
-    return this.userService.login(userLoginDto);
+  login(@Body(new ValidationPipe()) loginDto: LoginDto) {
+    return this.userService.login(LoginDto);
   }
   ```
 
@@ -392,8 +530,8 @@ export class UserLoginDto {
   ```typescript
   @Post('/login')
   @UsePipes(new ValidationPipe())
-  login(@Body() userLoginDto: UserLoginDto) {
-    return this.userService.login(userLoginDto);
+  login(@Body() loginDto: LoginDto) {
+    return this.userService.login(loginDto);
   }
   ```
 
@@ -510,10 +648,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
 app.useGlobalFilters(new HttpExceptionFilter());
 ```
 
-## 执行顺序
-
-`中间件` → `守卫` → `拦截器`
-
 # 四、扩展
 
 ## 帮助文档
@@ -623,7 +757,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { JWT_CONSTANT } from './jwt.constant';
-import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
+import { LoginDto } from 'src/common/dto/req/login.dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -635,13 +769,160 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: CreateUserDto) {
-    return { phone: payload.phone };
+  async validate(loginDto: LoginDto) {
+    return { loginDto };
   }
 }
 ```
 
+5）完善 `auth` 模块
 
+*`src/modules/user/user.service.ts`*
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from 'src/common/db/schemas/user.schema';
+import { LoginDto } from 'src/common/dto/req/login.dto';
+import { UserService } from 'src/modules/user/user.service';
+import { encript } from 'src/utils/encription';
+import { CreateUserDto } from '../../common/dto/req/create-user.dto';
+import { IResponse } from '../../common/interfaces/response.interface';
+
+@Injectable()
+export class AuthService {
+  constructor(
+  	@InjectModel('USER_MODEL') private readonly userModel: Model<User>, 
+    private readonly userService: UserService, private readonly jwtService: JwtService
+  ) {}
+  // -- 验证
+  async validateUser(user: LoginDto): Promise<IResponse> {
+    // -- 获取手机号/登录密码
+    const { phone, password } = user;
+    // -- 查询用户
+    return await this.userService.findOneByPhone(phone).then((res) => {
+      // -- 用户不存在
+      if (res.length === 0) {
+        return { code: 3, msg: '用户尚未注册' };
+      }
+      // -- 用户存在
+      const dbUser: CreateUserDto = res[0] as CreateUserDto;
+      const pass = encript(password, dbUser.salt);
+      if (pass === dbUser.password) {
+        return { code: 0, msg: '用户登录成功' };
+      } else {
+        return { code: 4, msg: '账号或密码错误' };
+      }
+    });
+  }
+
+  // -- 登录
+  async login(loginDto: LoginDto): Promise<IResponse> {
+    return await this.validateUser(loginDto).then(async (res) => {
+      if (res.code === 0) {
+        return {
+          ...res,
+          data: { token: await this.createToken(loginDto) },
+        };
+      }
+      return res;
+    });
+  }
+
+  // -- 注册
+  async regist(user: CreateUserDto): Promise<IResponse> {
+    return await this.userService.findOneByPhone(user.phone).then(async (res) => {
+      // -- 如果查到了用户，则表示用户已注册
+      if (res.length !== 0) {
+        return { code: 1, msg: '当前手机号已注册' };
+      }
+      // -- 如果没有查到用户，则表示用户未注册
+      try {
+        const createUser = new this.userModel(user);
+        await createUser.save();
+        return { code: 0, msg: '注册成功' };
+      } catch (error) {
+        return { code: 2, msg: '注册失败，失败原因：' + error };
+      }
+    });
+  }
+
+  // -- 生成token
+  async createToken(loginDto: LoginDto) {
+    return await this.jwtService.sign(loginDto);
+  }
+}
+```
+
+*`src/modules/auth/auth.controller.ts`*
+
+```typescript
+import { Body, Controller, Post } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
+import { LoginDto } from 'src/common/dto/req/login.dto';
+import { AuthService } from './auth.servce';
+
+@ApiTags('用户验证模块')
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @ApiOperation({ summary: '用户登录' })
+  @Post('login')
+  async login(@Body() user: LoginDto) {
+    return await this.authService.login(user);
+  }
+
+  @ApiOperation({ summary: '用户注册' })
+  @Post('regist')
+  async registUser(@Body() userDto: CreateUserDto) {
+    return await this.authService.regist(userDto);
+  }
+}
+```
+
+> **Tips：** `LoginDto` 请参照 [管道 - 验证 >>](#验证) 章节。
+
+*`src/modules/auth/auth.module.ts`*
+
+```typescript
+import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.servce';
+import { JwtModule } from '@nestjs/jwt';
+import { JWT_CONSTANT } from './jwt.constant';
+import { JwtStrategy } from './jwt.strategy';
+import { UserService } from 'src/modules/user/user.service';
+import { HashPasswordMiddleware } from 'src/common/middleware/hash-password.middleware';
+
+@Module({
+  imports: [
+    // -- 引入jwt模块
+    JwtModule.register({
+      secret: JWT_CONSTANT.secret,
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, UserService, JwtStrategy /** 引入jwt策略 */],
+})
+export class AuthModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HashPasswordMiddleware).forRoutes('auth/regist');
+  }
+}
+```
+
+6）测试，我们在 *`user.controller.ts`* 文件中，新建 `hello` 路由并注入 jwt验证，如下所示：
+
+```typescript
+@UseGuards(AuthGuard('jwt'))
+hello() {
+  return this.userServier.hello();
+}
+```
 
 ## Swagger
 
@@ -699,6 +980,8 @@ bootstrap();
 - `@ApiProperty({ name: 'age', description: 'age', type: Number })`
 
 ## Mongo
+
+[mongo 官方文档 >>](https://docs.nestjs.cn/8/techniques?id=mongo)
 
 ### 安装依赖
 
@@ -769,6 +1052,8 @@ import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from './schemas/user.schema';
 
+// -- 此模块使用 forFeature() 方法定义在当前范围中注册哪些存储库。
+// -- 如果有多张表，直接在数组中加配置就可以了
 const MONGO_MODELS = MongooseModule.forFeature([
   {
     name: 'USER_MODEL',
@@ -811,65 +1096,9 @@ $ nest g co modules/user
 $ nest g s modules/user
 ```
 
-用户注册需用到密码，通常密码我们需要加密处理，先创建一个用于加密的工具函数：*`src/utils/encription.ts`*
-
-```typescript
-import * as crypto from 'crypto';
-
-/**
- * 获取盐
- * @returns
- */
-export function getSalt() {
-  return crypto.randomBytes(16).toString('base64');
-}
-
-/**
- * 加密
- * @param password
- * @param salt
- * @returns
- */
-export function encript(password: string, salt: string) {
-  return crypto.pbkdf2Sync(password, salt, 10000, 16, 'sha256').toString('base64');
-}
-```
-
-然后在中间件中对前端传入的密码加密处理：*`hash-password.middleware`*
-
-```typescript
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
-import { encript, getSalt } from 'src/utils/encription';
-
-@Injectable()
-export class HashPasswordMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
-    // -- 获取请求体中的密码
-    const userPassword = req.body['password'];
-    if (userPassword) {
-      const salt = getSalt();
-      // -- 将加密后的密码替换
-      req.body['password'] = encript(userPassword, salt);
-      // -- 存储盐值，用于登陆时解密
-      req.body['salt'] = salt;
-    }
-    next();
-  }
-}
-```
+用户注册需用对密码进行加密，加密手段可参照 [中间件 示例1：加密中间件 >>](#示例1：加密中间件) 章节。
 
 继续后续操作...
-
-*`src/common/interfaces/response.interface.ts`*
-
-```typescript
-export interface IResponse {
-  code: number;
-  msg: any;
-  data: any;
-}
-```
 
 *`src/common/dto/req/create-user.dto.ts`*
 
@@ -910,35 +1139,31 @@ export class UserService {
   constructor(@InjectModel('USER_MODEL') private readonly userModel: Model<User>) {}
 
   // -- 注册
-  async regist(user: CreateUserDto) {
-    return await this.findOne(user.phone)
-      .then((res) => {
-        // -- 如果查到了用户，则表示用户已注册
-        if (res.length !== 0) {
-          this.response = { code: 1, data: null, msg: '当前手机号已注册' };
-          return this.response;
-        }
-      })
-      .then(async () => {
-        // -- 如果没有查到用户，则表示用户未注册
-        try {
-          const createUser = new this.userModel(user);
-          await createUser.save();
-          this.response = { code: 0, msg: '注册成功', data: null };
-          return this.response;
-        } catch (error) {
-          this.response = { code: 2, data: null, msg: '注册失败，失败原因：' + error };
-          return this.response;
-        }
-      });
+  async regist(user: CreateUserDto): Promise<IResponse> {
+    return await this.userService.findOneByPhone(user.phone).then(async (res) => {
+      // -- 如果查到了用户，则表示用户已注册
+      if (res.length !== 0) {
+        return { code: 1, msg: '当前手机号已注册' };
+      }
+      // -- 如果没有查到用户，则表示用户未注册
+      try {
+        const createUser = new this.userModel(user);
+        await createUser.save();
+        return { code: 0, msg: '注册成功' };
+      } catch (error) {
+        return { code: 2, msg: '注册失败，失败原因：' + error };
+      }
+    });
   }
 
   // -- 通过手机号查找用户
-  async findOne(phone: string) {
+  async findOneByPhone(phone: string) {
     return await this.userModel.find({ phone });
   }
 }
 ```
+
+> **Tips：** `IResponse` 类型定义请参照 [控制器 >>](#控制器) 章节。
 
 *`src/modules/user/user.controller.ts`*
 
