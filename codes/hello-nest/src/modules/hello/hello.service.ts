@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-05 16:25:22
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-09 17:05:06
+ * @LastEditTime: 2022-05-09 22:45:08
  * @Description:
  */
 import { Injectable, Logger } from '@nestjs/common';
@@ -34,6 +34,6 @@ export class HelloService {
   }
 
   async testEnv(): Promise<IResponse> {
-    return { code: 0, data: this.configService.get('name') };
+    return { code: 0, data: this.configService.get('s_name') || '123' };
   }
 }

@@ -1384,5 +1384,31 @@ export class UserModule {
 }
 ```
 
+# 部署
+
+1）打包前配置 *`tsconfig.build.json`* 减少打包体积
+
+```typescript
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "sourceMap": false,
+    "declaration": false,
+    "incremental": false
+  },
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+}
+```
+
+2）本地打包：`npm run build`，然后将 `package.json` 文件复制一份到 *`/dist`* 目录下。
+
+4）使用 xftp 把你的 dist 传到服务器指定目录
+
+5）在服务器中，安装依赖：`npm install --production`（只安装运行时依赖）
+
+6）执行 `node main.js` 测试是否可以启动
+
+7）启动没问题就可以使用 `pm2 start main.js --name nest-app` 启动
+
 
 

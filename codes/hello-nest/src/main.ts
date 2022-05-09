@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-04-29 15:10:52
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-09 16:53:28
+ * @LastEditTime: 2022-05-09 22:04:55
  */
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
