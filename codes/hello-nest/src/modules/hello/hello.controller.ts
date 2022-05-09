@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-01 12:29:52
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-08 12:49:04
+ * @LastEditTime: 2022-05-09 16:22:19
  */
 import { Body, Controller, Delete, Get, Headers, Logger, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
@@ -45,5 +45,11 @@ export class HelloController {
   @Delete('remove')
   remove(@Query('id', new ParseIntPipe()) id) {
     return this.helloService.remove(id);
+  }
+
+  @ApiOperation({ summary: '测试环境变量配置' })
+  @Get('/test-env')
+  testEnv() {
+    return this.helloService.testEnv();
   }
 }

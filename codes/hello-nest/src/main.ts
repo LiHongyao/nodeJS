@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-04-29 15:10:52
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-08 08:54:40
+ * @LastEditTime: 2022-05-09 16:53:28
  */
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
@@ -13,6 +13,8 @@ import { AuthGuard } from './common/guards/auth.guard';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { visitor } from './common/middleware/visitor.middleware';
 import { ValidationPipe } from './common/pipes/validation.pipe';
+
+const logger = new Logger('main.ts');
 
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule);
@@ -29,7 +31,7 @@ const bootstrap = async () => {
   // -- 全局注册响应拦截器
   app.useGlobalInterceptors(new ResponseInterceptor());
   // -- 接口前缀
-  app.setGlobalPrefix('/api');
+  app.setGlobalPrefix(process.env.APP_PREFIX);
   // -- swagger文档相关配置
   const swaggerOptions = new DocumentBuilder()
     .setTitle('Swagger 文档示例')
@@ -49,8 +51,8 @@ const bootstrap = async () => {
   });
   SwaggerModule.setup('doc', app, document);
   // -- 启动监听
-  await app.listen(8888);
+  await app.listen(process.env.APP_PORT);
 };
 bootstrap().then(() => {
-  new Logger('main.ts').log('Server running at http://localhost:8888');
+  logger.log(`Server running at http://localhost:${process.env.APP_PORT}`);
 });
