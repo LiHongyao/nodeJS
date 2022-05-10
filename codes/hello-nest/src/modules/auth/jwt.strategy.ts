@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-06 18:00:56
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-08 23:41:21
+ * @LastEditTime: 2022-05-10 09:30:09
  * @Description: jwt 策略
  */
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -22,6 +22,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(loginDto: LoginDto) {
-    return { loginDto };
+    return { ...loginDto };
   }
 }

@@ -1,8 +1,9 @@
 - [ 中文文档 >>](https://docs.nestjs.cn/)
-
 - [工程目录与代码规范 >>](https://www.toimc.com/nestjs-example-project-4/)
 - [Postman Tools >>](https://www.postman.com/downloads/)
-- [参考 >>](https://blog.csdn.net/lxy869718069/article/details/114028195)
+
+- https://gitee.com/wenqiyun/nest-admin
+- https://github.com/nestjs
 
 # 一、概述
 
@@ -430,17 +431,7 @@ export class AuthGuard implements CanActivate {
 
 [参考官方文档 >>](https://docs.nestjs.cn/8/interceptors)
 
-拦截器是第三道关卡，比如我想自定义返回内容如：
-
-```typescript
-interface BaseResponse<T> {
-  status: number /** 状态码 */;
-  data: T /** 相应数据 */;
-  message: string /** 数据 */;
-}
-```
-
-这个时候就可以使用拦截器来做一下处理了，拦截器的作用是：
+拦截器是第三道关卡，拦截器的作用是：
 
 1. 在函数执行之前/之后绑定额外的逻辑
 2. 转换从函数返回的结果
@@ -451,6 +442,59 @@ interface BaseResponse<T> {
 拦截器的执行顺序分为两个部分：
 第一个部分在管道和自定义逻辑（`next.handle()`方法）之前。
 第二个部分在管道和自定义逻辑（`(next.handle()`方法）之后。
+
+### 响应拦截示例
+
+比如，我们统一返回的格式如下：
+
+```typescript
+// -- src/common/interfaces/response.interface.ts
+export interface IResponse<T = any> {
+  code: number /** 状态码 */;
+  data?: T /** 响应数据 */;
+  msg?: string /** 提示信息 */;
+  page?: {
+    pageNo: number;
+    pages: number;
+    total: number;
+  };
+}
+```
+
+接下来定义拦截器：*`src/common/interceptors/response.interceptor.ts`*
+
+```typescript
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { IResponse } from '../interfaces/response.interface';
+
+const logger = new Logger('response.interceptor');
+
+@Injectable()
+export class ResponseInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<IResponse> {
+    // 实现数据的遍历与转变
+    return next.handle().pipe(
+      map((response: IResponse) => {
+        logger.log('进入响应拦截器 >>>');
+        const { code, msg, data } = response;
+        return {
+          code,
+          data: data || null,
+          msg: msg || 'success',
+        };
+      }),
+    );
+  }
+}
+```
+
+最后在 *`src/main.ts`* 中全局使用：
+
+```typescript
+app.useGlobalInterceptors(new ResponseInterceptor());
+```
 
 ## 管道
 
@@ -599,30 +643,32 @@ bootstrap();
 1）定义过滤器：*`src/common/filters/http-exception.filter.ts`*
 
 ```typescript
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Logger, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { IResponse } from '../interfaces/response.interface';
+
+const logger = new Logger('http-exception.filter');
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
+  // -- exception：当前正在处理的异常对象
+  // -- host：传递给原始处理程序的参数的一个包装（Request/Response）的引用
   catch(exception: HttpException, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
-    const status = exception.getStatus();
-    const exceptionRes: any = exception.getResponse();
-    const { error, message } = exceptionRes;
-    response.status(status).json({
-      status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-      error,
-      message,
-    });
+    logger.log('进入全局异常捕获 >>>');
+    const ctx = host.switchToHttp(); /** 获取请求上下文 */
+    const request = ctx.getRequest<Request>(); /** 获取请求上下文中的request对象 */
+    const response = ctx.getResponse<Response>(); /** 获取请求上下文中的response对象 */
+    const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR; 
+    const message = exception.message ? exception.message : `${status >= 500 ? '服务器错误（Service Error）' : '客户端错误（Client Error）'}`;
+
+    // -- 抛出错误信息
+    // -- 和全局响应拦截结构保持一致
+    const errorResponse: IResponse = {
+      code: status,
+      data: null,
+      msg: message,
+    };
+    response.status(status).json(errorResponse);
   }
 }
 ```
@@ -654,6 +700,16 @@ $ nest g co controller-names
 ```typescript
 app.enableCors();
 ```
+
+##  获取真实IP
+
+安装依赖：
+
+```shell
+$ npm install --save nestjs-real-ip
+```
+
+
 
 ## 环境配置（变量）
 
@@ -699,7 +755,11 @@ export declare global {
 
 ### 自定义配置文件
 
-一般来讲，可能 `.env` 文件能够满足你的需求，但如果你的项目过于复杂，可以利用自定义配置文件来满足需求。此时你应该构造如下目录结构：
+一般来讲，可能 `.env` 文件能够满足你的需求，但如果你的项目过于复杂，可以利用自定义配置文件来满足需求。
+
+> **Tips：** 实际使用中，你可以直接使用自定义配置文件应用于你的项目中。
+
+首先构造如下目录结构：
 
 ```
 src
@@ -720,8 +780,15 @@ src
 
 ```typescript
 // -- 默认配置
+// -- 默认配置
 export const config = {
-  jwtSecret: process.env.JWT_SECRET || 'jwt_secret',
+  app: {
+    port: 8888,
+    prefix: '/api',
+  },
+  jwt: {
+    secretkey: 'JWT_1652083308472',
+  },
 };
 ```
 
@@ -729,7 +796,7 @@ export const config = {
 
 ```typescript
 export const config = {
-  name: '开发环境',
+  env: 'dev',
 };
 ```
 
@@ -737,7 +804,7 @@ export const config = {
 
 ```typescript
 export const config = {
-  name: '生产环境',
+  env: 'pro',
 };
 ```
 
@@ -745,7 +812,7 @@ export const config = {
 
 ```typescript
 export const config = {
-  name: '测试环境',
+  env: 'test',
 };
 ```
 
@@ -769,7 +836,6 @@ export type Config = Default & Development & Production & Test;
 
 ```typescript
 import type { Objectype, Config } from './config.interface';
-
 const util = {
   // -- 校验是否为对象
   isObject<T>(value: T): value is T & Objectype {
@@ -817,11 +883,12 @@ import { configuration } from './configs';
 
 @Module({
   imports: [
+    // -- 配置模块
     ConfigModule.forRoot({
-      // -- 全局使用
+      cache: true,
       isGlobal: true,
       load: [configuration],
-    }),
+    })
   ],
   controllers: [],
 })
@@ -848,9 +915,9 @@ export class HelloService {
 
 ```json
 {
-    "build:pro": "cross-env NODE_ENV=production nest build",
-    "build:test": "cross-env NODE_ENV=test nest build",
-    "start:dev": "cross-env NODE_ENV=test nest start --watch"
+    "start:dev": "cross-env NODE_ENV=development nest start --watch",
+    "start:prod": "cross-env NODE_ENV=production node dist/main",
+    "start:test": "cross-env NODE_ENV=test node dist/main",
 }
 ```
 
@@ -901,206 +968,6 @@ export class AuthService {
     // -- 请求
     return this.httpService.get('http://localhost/users');
   }
-}
-```
-
-## jwt验证
-
-1）安装依赖
-
-```shell
-$ npm install --save @nestjs/passport passport passport-local
-$ npm install --save-dev @types/passport-local
-```
-
-2）构建 `auth` 模块
-
-```shell
-$ nest g mo modules/auth
-$ nest g co modules/auth
-$ nest g s  modules/auth
-```
-
-3）jwt 常量：*`src/moudles/auth/jwt.constant.ts`*
-
-```typescript
-export const JWT_CONSTANT = {
-  // -- 自定义秘钥
-  secret: 'jwt_secret',
-};
-```
-
-4）jwt 策略：*`src/modules/auth/jwt.strategy.ts`*
-
-```typescript
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
-import { JWT_CONSTANT } from './jwt.constant';
-import { LoginDto } from 'src/common/dto/req/login.dto';
-
-@Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: JWT_CONSTANT.secret,
-    });
-  }
-
-  async validate(loginDto: LoginDto) {
-    return { loginDto };
-  }
-}
-```
-
-5）完善 `auth` 模块
-
-*`src/modules/user/user.service.ts`*
-
-```typescript
-import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from 'src/common/db/schemas/user.schema';
-import { LoginDto } from 'src/common/dto/req/login.dto';
-import { UserService } from 'src/modules/user/user.service';
-import { encript } from 'src/utils/encription';
-import { CreateUserDto } from '../../common/dto/req/create-user.dto';
-import { IResponse } from '../../common/interfaces/response.interface';
-
-@Injectable()
-export class AuthService {
-  constructor(
-  	@InjectModel('USER_MODEL') private readonly userModel: Model<User>, 
-    private readonly userService: UserService, private readonly jwtService: JwtService
-  ) {}
-  // -- 验证
-  async validateUser(user: LoginDto): Promise<IResponse> {
-    // -- 获取手机号/登录密码
-    const { phone, password } = user;
-    // -- 查询用户
-    return await this.userService.findOneByPhone(phone).then((res) => {
-      // -- 用户不存在
-      if (res.length === 0) {
-        return { code: 3, msg: '用户尚未注册' };
-      }
-      // -- 用户存在
-      const dbUser: CreateUserDto = res[0] as CreateUserDto;
-      const pass = encript(password, dbUser.salt);
-      if (pass === dbUser.password) {
-        return { code: 0, msg: '用户登录成功' };
-      } else {
-        return { code: 4, msg: '账号或密码错误' };
-      }
-    });
-  }
-
-  // -- 登录
-  async login(loginDto: LoginDto): Promise<IResponse> {
-    return await this.validateUser(loginDto).then(async (res) => {
-      if (res.code === 0) {
-        return {
-          ...res,
-          data: { token: await this.createToken(loginDto) },
-        };
-      }
-      return res;
-    });
-  }
-
-  // -- 注册
-  async regist(user: CreateUserDto): Promise<IResponse> {
-    return await this.userService.findOneByPhone(user.phone).then(async (res) => {
-      // -- 如果查到了用户，则表示用户已注册
-      if (res.length !== 0) {
-        return { code: 1, msg: '当前手机号已注册' };
-      }
-      // -- 如果没有查到用户，则表示用户未注册
-      try {
-        const createUser = new this.userModel(user);
-        await createUser.save();
-        return { code: 0, msg: '注册成功' };
-      } catch (error) {
-        return { code: 2, msg: '注册失败，失败原因：' + error };
-      }
-    });
-  }
-
-  // -- 生成token
-  async createToken(loginDto: LoginDto) {
-    return await this.jwtService.sign(loginDto);
-  }
-}
-```
-
-*`src/modules/auth/auth.controller.ts`*
-
-```typescript
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
-import { LoginDto } from 'src/common/dto/req/login.dto';
-import { AuthService } from './auth.servce';
-
-@ApiTags('用户验证模块')
-@Controller('auth')
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
-
-  @ApiOperation({ summary: '用户登录' })
-  @Post('login')
-  async login(@Body() user: LoginDto) {
-    return await this.authService.login(user);
-  }
-
-  @ApiOperation({ summary: '用户注册' })
-  @Post('regist')
-  async registUser(@Body() userDto: CreateUserDto) {
-    return await this.authService.regist(userDto);
-  }
-}
-```
-
-> **Tips：** `LoginDto` 请参照 [管道 - 验证 >>](#验证) 章节。
-
-*`src/modules/auth/auth.module.ts`*
-
-```typescript
-import { MiddlewareConsumer, Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.servce';
-import { JwtModule } from '@nestjs/jwt';
-import { JWT_CONSTANT } from './jwt.constant';
-import { JwtStrategy } from './jwt.strategy';
-import { UserService } from 'src/modules/user/user.service';
-import { HashPasswordMiddleware } from 'src/common/middleware/hash-password.middleware';
-
-@Module({
-  imports: [
-    // -- 引入jwt模块
-    JwtModule.register({
-      secret: JWT_CONSTANT.secret,
-    }),
-  ],
-  controllers: [AuthController],
-  providers: [AuthService, UserService, JwtStrategy /** 引入jwt策略 */],
-})
-export class AuthModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(HashPasswordMiddleware).forRoutes('auth/regist');
-  }
-}
-```
-
-6）测试，我们在 *`user.controller.ts`* 文件中，新建 `hello` 路由并注入 jwt验证，如下所示：
-
-```typescript
-@UseGuards(AuthGuard('jwt'))
-hello() {
-  return this.userServier.hello();
 }
 ```
 
@@ -1158,6 +1025,12 @@ bootstrap();
 
 - *`@ApiParam({ name: 'id', description: '更新索引', type: Number, example: 1 })`*
 - `@ApiProperty({ name: 'age', description: 'age', type: Number })`
+
+# 五、数据库
+
+## TypeORM
+
+[参考官方指南 >>](https://docs.nestjs.cn/8/recipes?id=typeorm)
 
 ## Mongo
 
@@ -1384,7 +1257,319 @@ export class UserModule {
 }
 ```
 
-# 部署
+# 六、安全
+
+## Helmet
+
+[Helmet >>](https://docs.nestjs.cn/8/security?id=helmet) 可以帮助保护您的应用免受一些众所周知的 `Web` 漏洞的影响
+
+安装依赖：
+
+```shell
+$ npm i --save helmet
+```
+
+安装完成后，将其应用为全局中间件：
+
+```typescript
+import helmet from 'helmet';
+app.use(helmet());
+```
+
+## 限速
+
+为了保护您的应用程序免受暴力攻击，您必须实现某种速率限制。
+
+安装依赖：
+
+```shell
+ $ npm i --save express-rate-limit
+```
+
+安装完成后，将其应用为全局中间件：
+
+```typescript
+import rateLimit from 'express-rate-limit';
+// -- 设置访问频率
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15分钟
+    max: 1000, // 限制15分钟内最多只能访问1000次
+  }),
+);
+```
+
+## jwt验证
+
+### 安装依赖
+
+```shell
+$ npm install --save @nestjs/passport passport passport-local
+$ npm install --save-dev @types/passport-local
+```
+
+### jwt 配置
+
+jwt 常量：*`src/moudles/auth/jwt.constant.ts`*
+
+```typescript
+export const JWT_CONSTANT = {
+  // -- 自定义秘钥
+  secret: 'jwt_secret',
+};
+```
+
+jwt 策略：*`src/modules/auth/jwt.strategy.ts`*
+
+```typescript
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { PassportStrategy } from '@nestjs/passport';
+import { Injectable } from '@nestjs/common';
+import { JWT_CONSTANT } from './jwt.constant';
+import { LoginDto } from 'src/common/dto/req/login.dto';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor() {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: JWT_CONSTANT.secret,
+    });
+  }
+
+  async validate(loginDto: LoginDto) {
+    return { ...loginDto };
+  }
+}
+```
+
+### 构建 auth 模块
+
+构建 `auth` 模块
+
+```shell
+$ nest g mo modules/auth
+$ nest g co modules/auth
+$ nest g s  modules/auth
+```
+
+*`src/modules/user/user.service.ts`*
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from 'src/common/db/schemas/user.schema';
+import { LoginDto } from 'src/common/dto/req/login.dto';
+import { UserService } from 'src/modules/user/user.service';
+import { encript } from 'src/utils/encription';
+import { CreateUserDto } from '../../common/dto/req/create-user.dto';
+import { IResponse } from '../../common/interfaces/response.interface';
+
+@Injectable()
+export class AuthService {
+  constructor(@InjectModel('USER_MODEL') private readonly userModel: Model<User>, private readonly userService: UserService, private readonly jwtService: JwtService) {}
+  // -- 验证
+  async validateUser(user: LoginDto): Promise<IResponse> {
+    // -- 获取手机号/登录密码
+    const { phone, password } = user;
+    // -- 查询用户
+    return await this.userService.findOneByPhone(phone).then((res) => {
+      // -- 用户不存在
+      if (res.length === 0) {
+        return { code: 3, msg: '用户尚未注册' };
+      }
+      // -- 用户存在
+      const dbUser: CreateUserDto = res[0] as CreateUserDto;
+      const pass = encript(password, dbUser.salt);
+      if (pass === dbUser.password) {
+        return { code: 0, msg: '用户登录成功' };
+      } else {
+        return { code: 4, msg: '账号或密码错误' };
+      }
+    });
+  }
+
+  // -- 登录
+  async login(loginDto: LoginDto): Promise<IResponse> {
+    return await this.validateUser(loginDto).then(async (res) => {
+      if (res.code === 0) {
+        return {
+          ...res,
+          data: { token: await this.createToken(loginDto) },
+        };
+      }
+      return res;
+    });
+  }
+
+  // -- 注册
+  async regist(user: CreateUserDto): Promise<IResponse> {
+    return await this.userService.findOneByPhone(user.phone).then(async (res) => {
+      // -- 如果查到了用户，则表示用户已注册
+      if (res.length !== 0) {
+        return { code: 1, msg: '当前手机号已注册' };
+      }
+      // -- 如果没有查到用户，则表示用户未注册
+      try {
+        const createUser = new this.userModel(user);
+        await createUser.save();
+        return { code: 0, msg: '注册成功' };
+      } catch (error) {
+        return { code: 2, msg: '注册失败，失败原因：' + error };
+      }
+    });
+  }
+
+  // -- 生成token
+  async createToken(loginDto: LoginDto) {
+    return await this.jwtService.sign(loginDto);
+  }
+}
+```
+
+*`src/modules/auth/auth.controller.ts`*
+
+```typescript
+import { Body, Controller, Post } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CreateUserDto } from 'src/common/dto/req/create-user.dto';
+import { LoginDto } from 'src/common/dto/req/login.dto';
+import { AuthService } from './auth.servce';
+
+@ApiTags('用户验证模块')
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @ApiOperation({ summary: '用户登录' })
+  @Post('login')
+  async login(@Body() user: LoginDto) {
+    return await this.authService.login(user);
+  }
+
+  @ApiOperation({ summary: '用户注册' })
+  @Post('regist')
+  async registUser(@Body() userDto: CreateUserDto) {
+    return await this.authService.regist(userDto);
+  }
+}
+```
+
+> **Tips：** `LoginDto` 请参照 [管道 - 验证 >>](#验证) 章节。
+
+*`src/modules/auth/auth.module.ts`*
+
+```typescript
+import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.servce';
+import { JwtModule } from '@nestjs/jwt';
+import { JWT_CONSTANT } from './jwt.constant';
+import { JwtStrategy } from './jwt.strategy';
+import { UserService } from 'src/modules/user/user.service';
+import { HashPasswordMiddleware } from 'src/common/middleware/hash-password.middleware';
+
+@Module({
+  imports: [
+    // -- 引入jwt模块
+    JwtModule.register({
+      secret: JWT_CONSTANT.secret,
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, UserService, JwtStrategy /** 引入jwt策略 */],
+})
+export class AuthModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HashPasswordMiddleware).forRoutes('auth/regist');
+  }
+}
+```
+
+### jwt 验证
+
+测试，我们在 *`user.controller.ts`* 文件中，新建 `hello` 路由并注入 jwt验证，如下所示：
+
+```typescript
+@ApiOperation({ summary: '测试守卫' })
+@Get('hello')
+// -- jwt 守卫
+@UseGuards(AuthGuard('jwt'))
+hello(@Req() request: Request) {
+  // -- 通过 request.user 可获取jwt用户信息
+  console.log('登录用户', request.user);
+  return this.userServier.hello();
+}
+```
+
+### 优化
+
+在 jwt 验证一节中，当我们需要在某个接口上使用 jwt 需要注入 `@UseGuards(AuthGuard('jwt'))`，但是有一个问题，要是项目中有很多接口/方法，都要进行jwt验证，难道要一个一个的去写吗？那得多麻烦，还让代码变得丑陋。其实我们只要实现一个父级的全局守卫，继承JWT并全局声明即可。
+
+第一步：创建装饰器文件，用于对接口添加注解
+
+```typescript
+// -- src/common/decorators/public.decorator.ts
+import { SetMetadata } from '@nestjs/common';
+
+export const Public = () => SetMetadata('isPublic', true);
+```
+
+第二步：创建全局守卫，继承jwt并全局注册，在其中判断接口是否具有第一步中的注解参数 `isPublic`，有则直接放行，没有则交由我们继承的jwt，由jwt判断token，最终返回401或放行。
+
+```typescript
+// -- src/common/guards/jwt-auth.guard.ts
+import { ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { AuthGuard } from '@nestjs/passport';
+
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  constructor(private reflector: Reflector) {
+    super();
+  }
+  canActivate(context: ExecutionContext) {
+    const isPublic = this.reflector.getAllAndOverride('isPublic', [context.getHandler(), context.getClass()]);
+    console.log(isPublic);
+    if (isPublic) return true;
+    return super.canActivate(context);
+  }
+}
+```
+
+```typescript
+import { Module } from '@nestjs/common';
+import * as Modules from './modules';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+
+@Module({
+  imports: [
+    ...Object.values(Modules),
+  ],
+  providers: [
+    // Global Guard, Authentication check on all routers
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+  ],
+})
+export class AppModule {}
+```
+
+第三步：接下来我们只需要在无需验证token的地方（比如登录接口）添加 `@Public()` 注解即可，没注解的则需要验证token。
+
+```typescript
+@ApiOperation({ summary: '用户登录' })
+@Public()
+@Post('login')
+async login(@Body() user: LoginDto) {
+  return await this.authService.login(user);
+}
+```
+
+# 七、部署
 
 1）打包前配置 *`tsconfig.build.json`* 减少打包体积
 

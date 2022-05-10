@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-02 10:29:20
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-08 12:39:17
+ * @LastEditTime: 2022-05-10 15:20:26
  * @Description: 全局响应拦截
  */
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
@@ -19,7 +19,6 @@ export class ResponseInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((response: IResponse) => {
         logger.log('进入响应拦截器 >>>');
-        logger.log(response);
         const { code, msg, data } = response;
         return {
           code,

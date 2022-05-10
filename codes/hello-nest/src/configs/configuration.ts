@@ -2,11 +2,10 @@
  * @Author: Lee
  * @Date: 2022-05-09 14:54:21
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-09 16:16:52
+ * @LastEditTime: 2022-05-10 11:10:30
  * @Description:
  */
 import type { Objectype, Config } from './config.interface';
-
 const util = {
   // -- 校验是否为对象
   isObject<T>(value: T): value is T & Objectype {
