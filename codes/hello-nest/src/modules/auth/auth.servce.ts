@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-03 11:02:13
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-10 15:16:02
+ * @LastEditTime: 2022-05-11 11:25:15
  * @Description:
  */
 import { Injectable } from '@nestjs/common';
@@ -73,6 +73,6 @@ export class AuthService {
 
   // -- 生成token
   async createToken(loginDto: LoginDto) {
-    return await this.jwtService.sign(loginDto);
+    return await this.jwtService.sign({ ...loginDto });
   }
 }

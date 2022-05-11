@@ -1,8 +1,8 @@
 /*
  * @Author: Lee
- * @Date: 2022-05-06 19:39:37
+ * @Date: 2022-05-09 09:44:07
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-10 15:51:54
+ * @LastEditTime: 2022-05-11 11:16:29
  * @Description:
  */
 import { Module } from '@nestjs/common';
@@ -30,5 +30,6 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     // Global Guard, Authentication check on all routers
     { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
+  controllers: [],
 })
 export class AppModule {}

@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-03 11:02:08
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-08 15:03:59
+ * @LastEditTime: 2022-05-11 11:30:29
  * @Description:
  */
 import { MiddlewareConsumer, Module } from '@nestjs/common';
@@ -19,6 +19,7 @@ import { HashPasswordMiddleware } from 'src/common/middleware/hash-password.midd
     // -- 引入jwt模块
     JwtModule.register({
       secret: JWT_CONSTANT.secret,
+      signOptions: { expiresIn: '7 days' },
     }),
   ],
   controllers: [AuthController],

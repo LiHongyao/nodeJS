@@ -1026,6 +1026,152 @@ bootstrap();
 - *`@ApiParam({ name: 'id', description: '更新索引', type: Number, example: 1 })`*
 - `@ApiProperty({ name: 'age', description: 'age', type: Number })`
 
+## 文件上传
+
+### 又拍云
+
+账号注册/实名认证/创建服务 [参照文档 >>](https://www.upyun.com/)
+
+这里主要使用 **服务端签名** +  **前端直传** 的方式实现文件上传。
+
+思路：
+
+- 客户端调用后端接口获取签名：
+
+#### 服务端
+
+1）新建 `upload` 模块
+
+*`src/modules/upload/upload.service.ts`*
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
+
+@Injectable()
+export class UploadService {
+  async getUploadSign(key: string /** 存储路径/前端发送 */) {
+    const bucketname = 'xxx'; /** 服务名 */
+    const username = 'xxx'; /** 操作员账号  */
+    const password = 'xxx'; /** 操作员密码 */
+    const method = 'POST';
+    const uri = '/' + bucketname; /** 请求路径 */
+
+    // --生成 policy
+    const policy = Buffer.from(
+      JSON.stringify({
+        bucket: bucketname,
+        'save-key': key,
+        expiration: new Date().getTime() + 5 * 60 * 1000,
+      }),
+    ).toString('base64');
+    // -- 生成 signature
+    const joinString = [method, uri, policy].join('&');
+    const md5String = crypto.createHash('md5').update(password).digest('hex');
+    const auth = crypto.createHmac('sha1', md5String).update(joinString, 'utf8').digest().toString('base64');
+    const signature = `UPYUN ${username}:${auth}`;
+
+    return { code: 0, data: { policy, signature } };
+  }
+}
+```
+
+*`src/modules/upload/upload.controller.ts`*
+
+```typescript
+import { Body, Controller, Post } from '@nestjs/common';
+import { UploadService } from './upload.service';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorators/public.decorator';
+import { UploadDto } from 'src/common/dto/req/upload.dto';
+
+@ApiTags('文件上传')
+@Controller('upload')
+export class UploadController {
+  constructor(private readonly uploadService: UploadService) {}
+
+  @ApiOperation({ summary: '获取又拍云签名' })
+  @Public()
+  @Post('getUploadSign')
+  async getUploadSign(@Body() data: UploadDto) {
+    return await this.uploadService.getUploadSign(data.key);
+  }
+}
+```
+
+*`src/modules/upload/upload.module.ts`*
+
+```typescript
+import { Module } from '@nestjs/common';
+import { UploadController } from './upload.controller';
+import { UploadService } from './upload.service';
+
+@Module({
+  imports: [],
+  controllers: [UploadController],
+  providers: [UploadService],
+})
+export class UploadModule {}
+```
+
+2）声明校验文件
+
+*`src/common/dto/req/upload.dto.ts`*
+
+```typescript
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
+
+export class UploadDto {
+  @ApiProperty({ description: '存储路径', example: '/xxx/xxx.jpg' })
+  @IsNotEmpty({ message: '请上传文件路径' })
+  key: string;
+}
+```
+
+#### 客户端
+
+核心代码：
+
+```javascript
+function upload(e) {
+  // -- 获取文件
+  const file = e.currentTarget.files[0];
+  // -- 构造文件路径
+  const suffix = file.name.split('.')[1];
+  const key = `/test/K${new Date().getTime()}.${suffix}`;
+  // -- 调用后端接口/获取签名
+  fetch('http://localhost:8888/api/upload/getUploadSign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key }),
+  })
+    .then((response) => response.json())
+    .then(({ data: { signature, policy }, code }) => {
+      if (code === 0) {
+        // -- 执行上传
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('policy', policy);
+        formData.append('authorization', signature);
+        // -- http://v0.api.upyun.com/<bucket:服务名>
+        const uploadUrl = 'http://v0.api.upyun.com/codings';
+        // -- 执行上传
+        fetch(uploadUrl, { method: 'POST', body: formData })
+          .then((response) => response.json())
+          .then(({ url }) => {
+            console.log('http://codings.test.upcdn.net' + url);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    });
+}
+```
+
+
+
 # 五、数据库
 
 ## TypeORM
@@ -1370,7 +1516,11 @@ import { IResponse } from '../../common/interfaces/response.interface';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel('USER_MODEL') private readonly userModel: Model<User>, private readonly userService: UserService, private readonly jwtService: JwtService) {}
+  constructor(
+    @InjectModel('USER_MODEL') private readonly userModel: Model<User>, 
+    private readonly userService: UserService, 
+    private readonly jwtService: JwtService
+  ) {}
   // -- 验证
   async validateUser(user: LoginDto): Promise<IResponse> {
     // -- 获取手机号/登录密码
@@ -1425,7 +1575,7 @@ export class AuthService {
 
   // -- 生成token
   async createToken(loginDto: LoginDto) {
-    return await this.jwtService.sign(loginDto);
+    return await this.jwtService.sign({ ...loginDto });
   }
 }
 ```
@@ -1477,6 +1627,7 @@ import { HashPasswordMiddleware } from 'src/common/middleware/hash-password.midd
     // -- 引入jwt模块
     JwtModule.register({
       secret: JWT_CONSTANT.secret,
+      signOptions: { expiresIn: '7 days' },
     }),
   ],
   controllers: [AuthController],

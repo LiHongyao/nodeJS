@@ -2,7 +2,7 @@
  * @Author: Lee
  * @Date: 2022-05-06 18:00:56
  * @LastEditors: Lee
- * @LastEditTime: 2022-05-10 09:30:09
+ * @LastEditTime: 2022-05-11 11:24:38
  * @Description: jwt 策略
  */
 import { ExtractJwt, Strategy } from 'passport-jwt';
