@@ -1450,8 +1450,8 @@ app.use(
 ### 安装依赖
 
 ```shell
-$ npm install --save @nestjs/passport passport passport-local
-$ npm install --save-dev @types/passport-local
+$ npm install --save @nestjs/passport passport passport-local @nestjs/jwt passport-jwt
+$ npm install --save-dev @types/passport-local types/passport-jwt
 ```
 
 ### jwt 配置
