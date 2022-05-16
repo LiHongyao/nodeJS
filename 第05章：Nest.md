@@ -737,7 +737,7 @@ JWT_SECRET=JWT_1652083308472
 
 > **Tips：** 在这里你可以定义一些固定通用的常量。
 
-为了是的程序能够自动识别你定义的环境变量，你可以构建全局类型声明文件：*`typings/global.d.ts`*
+为了使得程序能够自动识别你定义的环境变量，你可以构建全局类型声明文件：*`typings/global.d.ts`*
 
 ```typescript
 export declare global {
@@ -923,51 +923,23 @@ export class HelloService {
 
 ## Http
 
-1）安装依赖：
+[Http 模块官方指南 >>](https://docs.nestjs.cn/8/techniques?id=http-%e6%a8%a1%e5%9d%97)
 
-```shell
-$ npm i --save @nestjs/axios axios
-```
-
-2）目录结构：
-
-```shell
-$ nest g co auth
-$ nest g s auth
-$ nest g mo auth
-```
-
-> **Tips：**这里以 auth 控制器为例。
-
-3）导入 HttpModule：*`auth/auth.module.ts`*
+请求示例：
 
 ```typescript
-import { HttpModule } from '@nestjs/axios';
-import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-
-@Module({
-  imports: [HttpModule],
-  providers: [AuthService],
-})
-export class AuthModule {}
-```
-
-4）注入 HttpService：*`auth/auth.service.ts`*
-
-```typescript
-import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { AxiosResponse } from 'axios';
-import { Observable } from 'rxjs';
-
-@Injectable()
-export class AuthService {
-  constructor(private readonly httpService: HttpService) {}
-  queryData(): Observable<AxiosResponse<any>> {
-    // -- 请求
-    return this.httpService.get('http://localhost/users');
-  }
+// -- 请求数据
+tru {
+    const data = await lastValueFrom(
+      this.httpService
+        .get(`${apiHost}/xwh-base/customer/simleInfo`, {
+          headers: { Authorization: wxToken },
+        })
+        .pipe(map((resp) => resp.data)),
+    );
+    console.log(data);
+} catch(error) {
+    throw new Error(); 
 }
 ```
 
