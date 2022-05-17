@@ -1417,6 +1417,8 @@ app.use(
 );
 ```
 
+> **Tips：**一定根据实际情况来设置，这个是配置所有访问量的限制，如果设置的太少，则用户无法访问服务。
+
 ## jwt验证
 
 ### 安装依赖
@@ -1694,9 +1696,11 @@ async login(@Body() user: LoginDto) {
 
 # 七、部署
 
-1）打包前配置 *`tsconfig.build.json`* 减少打包体积
+## 准备工作
 
-```typescript
+第1步：配置  *`tsconfig.build.json`* ，减少项目体积
+
+```json
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
@@ -1708,15 +1712,54 @@ async login(@Body() user: LoginDto) {
 }
 ```
 
-2）本地打包：`npm run build`，然后将 `package.json` 文件复制一份到 *`/dist`* 目录下。
+第2步：执行打包命令 → `npm run build`
 
-4）使用 xftp 把你的 dist 传到服务器指定目录
+第3步：将 *`package.json`* 文件拷贝一份至 *`/dist`* 目录下
 
-5）在服务器中，安装依赖：`npm install --production`（只安装运行时依赖）
+第3步：将 `dist` 目录重命名为你的项目名，比如我这里命名为 `hope520`
 
-6）执行 `node main.js` 测试是否可以启动
+第4步：将 `hope520` 文件拖至服务器目录，我这里是：*`/usr/share/apis`*，我所有的node项目都放在这个目录下。
 
-7）启动没问题就可以使用 `pm2 start main.js --name nest-app` 启动
+第5步：参照 [pm2 >>](#pm2) 章节
+
+## pm2
+
+使用 [pm2](https://pm2.keymetrics.io/) 可以很方便的管理我们的node项目，首先在远程服务器安装 pm2
+
+```shell
+$ npm install -g pm2
+```
+
+然后在管理 node 项目的目录下（*`/usr/share/apis`*） 新建pm2配置文件 *`cosystem.config.js`*，输入如下内容：
+
+```typescript
+// path:/usr/share/apis/cosystem.config.js
+module.exports = {
+  apps: [
+    {
+      name: 'hope520', 
+      script: './hope520/main.js',
+      env: {
+        NODE_ENV: 'production',
+      },
+    },
+  ],
+};
+```
+
+如果你有多个项目，可以在 *apps* 字段里面配置。
+
+接下来，你只需要执行如下命令即可启动服务啦：
+
+```shell
+$ pm2 start cosystem.config.js [--only hope520]
+```
+
+> **Tips：** 代码中的 `[--only hope520]` 表示只启动某一个app。
+
+> **Tips：**[更多关于pm2的操作参考这里 >>](https://blog.csdn.net/qq_38128179/article/details/120401139)
+
+
 
 
 
